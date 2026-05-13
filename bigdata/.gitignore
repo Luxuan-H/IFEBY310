@@ -1,3 +1,6 @@
 /env/
 /.quarto/
 **/*.quarto_ipynb
+/book_data/*
+/results/*
+/venv/
