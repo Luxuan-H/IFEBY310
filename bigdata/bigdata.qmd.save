@@ -8,6 +8,27 @@ Quarto enables you to weave together content and executable code into a finished
 
 ## Running Code
 
+```{r}
+library(reticulate)
+
+#use_virtualenv('env', required=TRUE)
+# virtualenv_create(
+#   envname = "./venv",
+#   python = virtualenv_starter("3.10"),
+#   version = NULL,
+#   packages = "numpy",
+#   requirements = NULL,
+#   force = FALSE,
+#   module = getOption("reticulate.virtualenv.module"),
+#   system_site_packages = getOption("reticulate.virtualenv.system_site_packages", default = FALSE),
+#   pip_version = getOption("reticulate.virtualenv.pip_version", default = NULL),
+#   setuptools_version = getOption("reticulate.virtualenv.setuptools_version", default = NULL),
+#   extra = getOption("reticulate.virtualenv.extra", default = NULL)
+# )
+
+use_virtualenv(virtualenv = "./venv", required = TRUE)
+```
+
 ```{python}
 import numpy
 ```
@@ -20,11 +41,9 @@ import sys
 import requests
 import sparknlp
 from sparknlp.pretrained import PretrainedPipeline
-from pyspark.sql import SparkSession
 
-## Zola's novels available at: https://www.gutenberg.org/browse/authors/z#a528
-# 
-#Store URLs in a dictionary
+#我们找左啦的书在：https://www.gutenberg.org/browse/authors/z#a528
+#放它们在一个dict
 
 zola_urls = {}
 zola_urls["la_fortune"]     = "https://www.gutenberg.org/ebooks/5135.txt.utf-8"
@@ -35,7 +54,7 @@ zola_urls["la_faute"]       = "https://www.gutenberg.org/ebooks/14200.txt.utf-8"
 zola_urls["son_excellence"] = "https://www.gutenberg.org/ebooks/56654.txt.utf-8"
 zola_urls["l_assommoir"]    = "https://www.gutenberg.org/ebooks/8558.txt.utf-8"
 zola_urls["une_page"]       = "https://www.gutenberg.org/ebooks/13695.txt.utf-8"
-#zola_urls["nana"]           = "" # not found
+#zola_urls["nana"]           = "" # 找不到
 zola_urls["pot_bouille"]    = "https://www.gutenberg.org/ebooks/54686.txt.utf-8"
 zola_urls["au_bonheur"]     = "https://www.gutenberg.org/ebooks/54726.txt.utf-8"
 zola_urls["la_joie"]        = "https://www.gutenberg.org/ebooks/56541.txt.utf-8"
@@ -48,8 +67,7 @@ zola_urls["l_argent"]       = "https://www.gutenberg.org/ebooks/56987.txt.utf-8"
 zola_urls["la_debacle"]     = "https://www.gutenberg.org/ebooks/13851.txt.utf-8"
 zola_urls["le_docteur"]     = "https://www.gutenberg.org/ebooks/10720.txt.utf-8"
 
- # Start and end tokens to extract the main text body
-zola_delimiters = {}  #
+zola_delimiters = {}  # 最开始和最后的些词语
 zola_delimiters["la_fortune"]     = ("On quitting Plassans", "upon a tombstone.")
 zola_delimiters["la_curee"]       = ("On the return", "thousand francs.")
 zola_delimiters["le_ventre"]      = ("Amidst the deep", "respectable people are!”")
@@ -72,16 +90,16 @@ zola_delimiters["la_debacle"]     = ("In the middle", "a new France.")
 zola_delimiters["le_docteur"]     = ("In the heat", "flag of life.")
 
 
-# # Download books if not already downloaded
+# 我们下载书如果没有已经下载了
 for book_title in zola_urls:
     url = zola_urls[book_title]
     #filename = url[len("https://www.gutenberg.org/ebooks/"):]
     #print(filename)
 
-    # Save to book_data folder
+    # 要作一个文件夹叫book——data
     file_path = os.path.join("book_data", book_title + ".txt")
 
-    # Skip download if file already exists
+    # 不用再下载如果已经有文件
     if not os.path.exists(file_path):
         r = requests.get(url)
         print(r.status_code)
@@ -99,11 +117,9 @@ for book_title in zola_urls:
             size = f.write(r.text[start_index:end_index])
 
 
-        print("Downloaded %d bytes" % size)
-```
+        print("下载了%d bytes" % size)
 
-```{python}
-# Load books into a PySpark DataFrame
+# 我们load这些书在一个pyspark dataframe
 #spark = sparknlp.start()
 books = []
 for book_title in zola_urls:
@@ -113,48 +129,22 @@ for book_title in zola_urls:
         books.append([book_text])
 #print(books)
 
-# Stop any existing Spark session to avoid conflicts
-# 
-existing = SparkSession.getActiveSession()
-if existing:
-    existing.stop()
-
+# 有可能我们要先作书篇干净（"\n"-> " "等)
 
 # 这是从sparknlp.org的网站的一个例如(https://sparknlp.org/docs/en/concepts)
+spark = sparknlp.start()
+#dataframe = spark.createDataFrame(books).toDF("text")
 
-#Start a new Spark session with limited memory (low-RAM machine)
-spark = sparknlp.start(memory="1g")  # 
-spark.conf.set("spark.sql.shuffle.partitions", "1")
+#explain_document_pipeline = PretrainedPipeline("explain_document_dl")  # 160 MB
+explain_document_pipeline = PretrainedPipeline("explain_document_ml")  # 9 MB
 
-#Load the pretrained NLP pipeline (lightweight version, ~9 MB)
-explain_document_pipeline = PretrainedPipeline("explain_document_ml")
+df = spark.createDataFrame(books).toDF("text")
 
-# Split long texts into smaller chunks to avoid OutOfMemoryError
-def split_text(text, chunk_size=3000):
-    words = text.split()
-    chunks = []
-    for i in range(0, len(words), chunk_size):
-        chunks.append(" ".join(words[i:i+chunk_size]))
-    return chunks
+annotations_finished_df = explain_document_pipeline.transform(df)
 
-results = {}
-for book_title in zola_urls:
-    file_path = os.path.join("book_data", book_title + ".txt")
-    with open(file_path, "r") as f:
-        book_text = f.read()
-    
-    chunks = split_text(book_text, chunk_size=3000)
-    book_data = [[chunk] for chunk in chunks]
-    
-    df = spark.createDataFrame(book_data).toDF("text")
-    result = explain_document_pipeline.transform(df)
-    
-    #  Write results to parquet immediately to free memory
-    result.write.mode("overwrite").parquet(f"results/{book_title}")
-    print(f" Done: {book_title}")
-
-print("All books processed!")
-
+#annotations_finished_df.select("entities.result").show(Truncate=False)
+#annotations_finished_df.("spell").show(truncate=True)
+annotations_finished_df.show(truncate=True)
 ```
 
 You can add options to executable code like this
