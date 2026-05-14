@@ -16,18 +16,65 @@ The corpus consists of **29 French novels** from two literary movements:
 - **Realist** – 19 novels by Émile Zola, most of them belonging to the *Rougon‑Macquart* cycle.
 - **Romantic** – 10 works by Victor Hugo, including major novels (e.g., *Notre‑Dame de Paris*, *Les Misérables*) as well as shorter pieces such as *Bug‑Jargal* and *Claude Gueux*.
 
-All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format. The full list of URLs and corresponding extraction delimiters is given in the collapsed code block below.
+All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format. 
+
+##1.2 Extraction Logic
+
+The goal of the extraction is to obtain only the narrative body of each novel, stripping away Gutenberg’s header, table of contents, and legal notices. This is achieved by:
+
+```         
+Checking if the cleaned file already exists in book_data/ (to avoid re‑downloading).
+
+Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
+
+Extracting the text between the custom start and end tokens defined above.
+
+Saving the cleaned excerpt as book_data/<book_title>.txt.
+```
+
+The extraction pipeline is fully reproducible; running the code below on any machine with internet access will recreate the identical book_data/ directory.
+
+After execution, the book_data/ folder contains 29 cleaned .txt files, one per novel.
+
+#2. Load and Transform Pipeline
+
+The cleaned texts must be converted into a Spark DataFrame suitable for annotation. Given the **4 GB RAM constraint**, each novel is split into **chunks of 3000 words**. This keeps individual rows small enough to be processed by the NLP pipeline without triggering out‑of‑memory errors.
+
+The loading step creates a DataFrame with two columns: `book` (the short title) and `text` (a chunk).
+
+This simple whitespace‑based split preserves the raw surface form of the text, which is exactly what the NLP pipeline expects. The chunk size of 3000 was chosen empirically to keep individual rows small enough to avoid out‑of‑memory errors, while still providing enough context for the sentence detector and part‑of‑speech tagger to work accurately.
+
+No separate “load all books” DataFrame is created. Instead, loading, chunking, and annotation are performed book‑by‑book – an approach that fits both our memory constraints and the embarrassingly parallel nature of the task.
+
+# 3. Annotation Pipeline
+
+Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides:
+Sentence detection
+Tokenization
+Lemmatization
+Part‑of‑speech tagging
+
+It is multilingual (hence the ml suffix) and works out of the box for French.
+
+We launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel we:
+Read the cleaned text from book_data/.
+Split it into 3000‑word chunks.
+Create a small DataFrame with one column text.
+Apply the pretrained pipeline.
+Write the resulting annotated DataFrame to Parquet (overwrite mode).
+Discard the data and move to the next book.
+
 
 ```{python}
+#| eval: false
 #| code-fold: true
-#| label: book-definitions
-
 import os.path
 import sys
 import requests
 import sparknlp
 from sparknlp.pretrained import PretrainedPipeline
 from pyspark.sql import SparkSession
+
 
 # =====================================================================
 # Book definitions: URL and start/end tokens for body extraction
@@ -81,7 +128,7 @@ zola_delimiters["l_argent"]       = ("Eleven o'clock had", "which creates life?"
 zola_delimiters["la_debacle"]     = ("In the middle", "a new France.")
 zola_delimiters["le_docteur"]     = ("In the heat", "flag of life.")
 
-# ========== Hugo==========
+# ---------- Hugo (Romantic) ----------
 hugo_urls = {}
 hugo_delimiters = {}
 
@@ -115,32 +162,17 @@ hugo_delimiters["le_dernier_jour"] = ("For five whole weeks", "carrying me on to
 hugo_urls["claude_gueux"]       = "https://www.gutenberg.org/ebooks/50010.txt.utf-8"
 hugo_delimiters["claude_gueux"] = ("CLAUDE GUEUX was a poor workman", "use cold steel.”")
 
-# # Download books if not already downloaded
-# 
+
+# =====================================================================
+# Merge Zola and Hugo dictionaries for unified processing
+# =====================================================================
 all_urls = {**zola_urls, **hugo_urls}
 all_delimiters = {**zola_delimiters, **hugo_delimiters}
-```
 
-##1.2 Extraction Logic
 
-The goal of the extraction is to obtain only the narrative body of each novel, stripping away Gutenberg’s header, table of contents, and legal notices. This is achieved by:
-
-```         
-Checking if the cleaned file already exists in book_data/ (to avoid re‑downloading).
-
-Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
-
-Extracting the text between the custom start and end tokens defined above.
-
-Saving the cleaned excerpt as book_data/<book_title>.txt.
-```
-
-The extraction pipeline is fully reproducible; running the code below on any machine with internet access will recreate the identical book_data/ directory.
-
-```{python}
-#| label: download-and-clean
-#| code-fold: true
-
+# =====================================================================
+# Download and cleaning pipeline
+# ====================================================================
 downloaded_raw_files = {}
 
 for book_title, url in all_urls.items():
@@ -186,18 +218,12 @@ for book_title, url in all_urls.items():
     print(f"Saved {clean_path}  ({size} bytes)")
 ```
 
-After execution, the book_data/ folder contains 29 cleaned .txt files, one per novel.
-
-#2. Load and Transform Pipeline
-
-The cleaned texts must be converted into a Spark DataFrame suitable for annotation. Given the **4 GB RAM constraint**, each novel is split into **chunks of 3000 words**. This keeps individual rows small enough to be processed by the NLP pipeline without triggering out‑of‑memory errors.
-
-The loading step creates a DataFrame with two columns: `book` (the short title) and `text` (a chunk).
-
 ```{python}
-#| label: split-text-function
-#| code-fold: false
-
+#| eval: false
+#| code-fold: true
+# =====================================================================
+# Helper function: split a text into word-based chunks
+# =====================================================================
 def split_text(text, chunk_size=3000):
     """
     Split a long string into a list of chunks,
@@ -208,52 +234,10 @@ def split_text(text, chunk_size=3000):
     for i in range(0, len(words), chunk_size):
         chunks.append(" ".join(words[i:i+chunk_size]))
     return chunks
-```
-
-This simple whitespace‑based split preserves the raw surface form of the text, which is exactly what the NLP pipeline expects. The chunk size of 3000 was chosen empirically to keep individual rows small enough to avoid out‑of‑memory errors, while still providing enough context for the sentence detector and part‑of‑speech tagger to work accurately.
-
-No separate “load all books” DataFrame is created. Instead, loading, chunking, and annotation are performed book‑by‑book – an approach that fits both our memory constraints and the embarrassingly parallel nature of the task.
-
-# 3. Annotation Pipeline
-
-Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides:
-
-```         
-Sentence detection
-
-Tokenization
-
-Lemmatization
-
-Part‑of‑speech tagging
-```
-
-It is multilingual (hence the ml suffix) and works out of the box for French.
-
-We launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel we:
-
-```         
-Read the cleaned text from book_data/.
-
-Split it into 3000‑word chunks.
-
-Create a small DataFrame with one column text.
-
-Apply the pretrained pipeline.
-
-Write the resulting annotated DataFrame to Parquet (overwrite mode).
-
-Discard the data and move to the next book.
-```
-
-```{python}
-#| label: annotation-pipeline
-#| code-fold: false
-
-import sparknlp
-from sparknlp.pretrained import PretrainedPipeline
-from pyspark.sql import SparkSession
-
+  
+# =====================================================================
+# Spark NLP Annotation Pipeline
+# =====================================================================
 # Stop any previous Spark session to avoid port conflicts
 existing = SparkSession.getActiveSession()
 if existing:
@@ -294,34 +278,7 @@ print("All 29 novels processed!")
 
 ```
 
-You can add options to executable code like this
 
-```{python}
-#| echo: false
-2 * 2
-```
 
-The `echo: false` option disables the printing of code (only output is displayed).
-
-## Plots
-
-See @fig-polar for an example of rendering plots as figures:
-
-```{python}
-#| label: fig-polar
-#| fig-cap: "A line plot on a polar axis"
-#| code-fold: true
-
-import numpy as np
-import matplotlib.pyplot as plt
-
-r = np.arange(0, 2, 0.01)
-theta = 2 * np.pi * r
-fig, ax = plt.subplots(subplot_kw={'projection': 'polar'})
-ax.plot(theta, r)
-ax.set_rticks([0.5, 1, 1.5, 2])
-ax.grid(True)
-plt.show()
-```
 
 Note that we included the cell option `fold: true` to hide the code by default (click the *Code* button to show it).
