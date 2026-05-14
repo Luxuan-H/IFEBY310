@@ -1,20 +1,27 @@
 ---
-title: "bigdata"
+title: "Stylometric Analysis of 19th Century French Novels with Spark NLP"
+author: "Luxuan HUANG"
+format: html
+engine: jupyter
 ---
 
-## Quarto
+# 1. Data Description and Extraction Pipeline
 
-Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
+## 1.1 Corpus Composition
 
-## Running Code
+## 1.1 Corpus Composition
+
+The corpus consists of **29 French novels** from two literary movements:
+
+- **Realist** – 19 novels by Émile Zola, most of them belonging to the *Rougon‑Macquart* cycle.
+- **Romantic** – 10 works by Victor Hugo, including major novels (e.g., *Notre‑Dame de Paris*, *Les Misérables*) as well as shorter pieces such as *Bug‑Jargal* and *Claude Gueux*.
+
+All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format. The full list of URLs and corresponding extraction delimiters is given in the collapsed code block below.
 
 ```{python}
-import numpy
-```
+#| code-fold: true
+#| label: book-definitions
 
-You can embed executable code like this:
-
-```{python}
 import os.path
 import sys
 import requests
@@ -22,9 +29,12 @@ import sparknlp
 from sparknlp.pretrained import PretrainedPipeline
 from pyspark.sql import SparkSession
 
+# =====================================================================
+# Book definitions: URL and start/end tokens for body extraction
+# =====================================================================
+
+# ---------- Zola (Realist) ---------
 ## Zola's novels available at: https://www.gutenberg.org/browse/authors/z#a528
-# 
-#Store URLs in a dictionary
 
 zola_urls = {}
 zola_urls["la_fortune"]     = "https://www.gutenberg.org/ebooks/5135.txt.utf-8"
@@ -71,89 +81,216 @@ zola_delimiters["l_argent"]       = ("Eleven o'clock had", "which creates life?"
 zola_delimiters["la_debacle"]     = ("In the middle", "a new France.")
 zola_delimiters["le_docteur"]     = ("In the heat", "flag of life.")
 
+# ========== Hugo==========
+hugo_urls = {}
+hugo_delimiters = {}
+
+hugo_urls["notre-dame"]         = "https://www.gutenberg.org/ebooks/2610.txt.utf-8"
+hugo_delimiters["notre-dame"]   = ("Three hundred and forty-eight years", "in his embrace, he fell to dust.")
+
+hugo_urls["miserables"]         = "https://www.gutenberg.org/ebooks/135.txt.utf-8"
+hugo_delimiters["miserables"]   = ("In 1815, M. Charles-François-Bienvenu", "lorsque le jour s’en va.")
+
+hugo_urls["travailleurs"]       = "https://www.gutenberg.org/ebooks/32338.txt.utf-8"
+hugo_delimiters["travailleurs"] = ("Christmas Day in the year", "Nothing was visible now but the sea.")
+
+hugo_urls["homme_qui_rit"]      = "https://www.gutenberg.org/ebooks/12587.txt.utf-8"
+hugo_delimiters["homme_qui_rit"]= ("Ursus and Homo were", "looking down upon the water.")
+
+hugo_urls["quatrevingt-treize"] = "https://www.gutenberg.org/ebooks/49372.txt.utf-8"
+hugo_delimiters["quatrevingt-treize"] = ("During the last days of May", "with the radiance of the other.")
+
+hugo_urls["han_d_islande1"]     = "https://www.gutenberg.org/ebooks/65214.txt.utf-8"
+hugo_delimiters["han_d_islande1"] = ("“That’s what comes", "I am here! I am here!”")
+
+hugo_urls["han_d_islande2"]     = "https://www.gutenberg.org/ebooks/65215.txt.utf-8"
+hugo_delimiters["han_d_islande2"] = ("The regiment of musketeers", "counts of Danneskiold.")
+
+hugo_urls["bug-jargal"]         = "https://www.gutenberg.org/ebooks/50010.txt.utf-8"
+hugo_delimiters["bug-jargal"]   = ("WHEN it came to the turn of Captain", "his country’s guillotine?”")
+
+hugo_urls["le_dernier_jour"]    = "https://www.gutenberg.org/ebooks/50010.txt.utf-8"
+hugo_delimiters["le_dernier_jour"] = ("For five whole weeks", "carrying me on to the scaffold....")
+
+hugo_urls["claude_gueux"]       = "https://www.gutenberg.org/ebooks/50010.txt.utf-8"
+hugo_delimiters["claude_gueux"] = ("CLAUDE GUEUX was a poor workman", "use cold steel.”")
 
 # # Download books if not already downloaded
-for book_title in zola_urls:
-    url = zola_urls[book_title]
-    #filename = url[len("https://www.gutenberg.org/ebooks/"):]
-    #print(filename)
-
-    # Save to book_data folder
-    file_path = os.path.join("book_data", book_title + ".txt")
-
-    # Skip download if file already exists
-    if not os.path.exists(file_path):
-        r = requests.get(url)
-        print(r.status_code)
-        with open(file_path, "w") as f:
-            start_token, end_token = zola_delimiters[book_title]
-
-            start_index = r.text.find(start_token)
-            end_index = r.text.rfind(end_token) + len(end_token)
-
-            print(r.text[start_index:start_index+100])
-            print("...")
-            print(r.text[end_index-100:end_index])
-            print("\n")
-            size = 19
-            size = f.write(r.text[start_index:end_index])
-
-
-        print("Downloaded %d bytes" % size)
+# 
+all_urls = {**zola_urls, **hugo_urls}
+all_delimiters = {**zola_delimiters, **hugo_delimiters}
 ```
 
+##1.2 Extraction Logic
+
+The goal of the extraction is to obtain only the narrative body of each novel, stripping away Gutenberg’s header, table of contents, and legal notices. This is achieved by:
+
+```         
+Checking if the cleaned file already exists in book_data/ (to avoid re‑downloading).
+
+Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
+
+Extracting the text between the custom start and end tokens defined above.
+
+Saving the cleaned excerpt as book_data/<book_title>.txt.
+```
+
+The extraction pipeline is fully reproducible; running the code below on any machine with internet access will recreate the identical book_data/ directory.
+
 ```{python}
-# Load books into a PySpark DataFrame
-#spark = sparknlp.start()
-books = []
-for book_title in zola_urls:
-    file_path = os.path.join("book_data", book_title + ".txt")
-    with open(file_path, "r") as f:
-        book_text = f.read() # TODO 我们只读两百字为快，然后要度全部
-        books.append([book_text])
-#print(books)
+#| label: download-and-clean
+#| code-fold: true
 
-# Stop any existing Spark session to avoid conflicts
-# 
-existing = SparkSession.getActiveSession()
-if existing:
-    existing.stop()
+downloaded_raw_files = {}
 
+for book_title, url in all_urls.items():
+    # 
+    clean_path = os.path.join("book_data", book_title + ".txt")
+    if os.path.exists(clean_path):
+        print(f"Skipping {book_title} – already cleaned.")
+        continue
 
-# 这是从sparknlp.org的网站的一个例如(https://sparknlp.org/docs/en/concepts)
+    # Obtain raw text (download only once per unique URL)
+    if url not in downloaded_raw_files:
+        # 
+        raw_filename = url.split("/")[-1]
+        raw_path = os.path.join("book_data", raw_filename)
 
-#Start a new Spark session with limited memory (low-RAM machine)
-spark = sparknlp.start(memory="1g")  # 
-spark.conf.set("spark.sql.shuffle.partitions", "1")
+        if not os.path.exists(raw_path):
+            r = requests.get(url)
+            print(f"Downloaded {url} -> {raw_filename}")
+            os.makedirs("book_data", exist_ok=True)
+            with open(raw_path, "w", encoding="utf-8") as f:
+                f.write(r.text)
+        downloaded_raw_files[url] = raw_path
+    else:
+        raw_path = downloaded_raw_files[url]
 
-#Load the pretrained NLP pipeline (lightweight version, ~9 MB)
-explain_document_pipeline = PretrainedPipeline("explain_document_ml")
+    # 
+    with open(raw_path, "r", encoding="utf-8") as f:
+        full_text = f.read()
 
-# Split long texts into smaller chunks to avoid OutOfMemoryError
+    start_token, end_token = all_delimiters[book_title]
+    start_idx = full_text.find(start_token)
+    end_idx = full_text.rfind(end_token) + len(end_token)
+
+    if start_idx == -1 or end_idx == -1:
+        print(f"Warning: Delimiter not found for {book_title}, using whole text.")
+        extracted = full_text
+    else:
+        extracted = full_text[start_idx:end_idx]
+
+    # Save the cleaned text
+    with open(clean_path, "w", encoding="utf-8") as f:
+        size = f.write(extracted)
+    print(f"Saved {clean_path}  ({size} bytes)")
+```
+
+After execution, the book_data/ folder contains 29 cleaned .txt files, one per novel.
+
+#2. Load and Transform Pipeline
+
+The cleaned texts must be converted into a Spark DataFrame suitable for annotation. Given the **4 GB RAM constraint**, each novel is split into **chunks of 3000 words**. This keeps individual rows small enough to be processed by the NLP pipeline without triggering out‑of‑memory errors.
+
+The loading step creates a DataFrame with two columns: `book` (the short title) and `text` (a chunk).
+
+```{python}
+#| label: split-text-function
+#| code-fold: false
+
 def split_text(text, chunk_size=3000):
+    """
+    Split a long string into a list of chunks,
+    each containing approximately `chunk_size` words.
+    """
     words = text.split()
     chunks = []
     for i in range(0, len(words), chunk_size):
         chunks.append(" ".join(words[i:i+chunk_size]))
     return chunks
+```
 
-results = {}
-for book_title in zola_urls:
+This simple whitespace‑based split preserves the raw surface form of the text, which is exactly what the NLP pipeline expects. The chunk size of 3000 was chosen empirically to keep individual rows small enough to avoid out‑of‑memory errors, while still providing enough context for the sentence detector and part‑of‑speech tagger to work accurately.
+
+No separate “load all books” DataFrame is created. Instead, loading, chunking, and annotation are performed book‑by‑book – an approach that fits both our memory constraints and the embarrassingly parallel nature of the task.
+
+# 3. Annotation Pipeline
+
+Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides:
+
+```         
+Sentence detection
+
+Tokenization
+
+Lemmatization
+
+Part‑of‑speech tagging
+```
+
+It is multilingual (hence the ml suffix) and works out of the box for French.
+
+We launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel we:
+
+```         
+Read the cleaned text from book_data/.
+
+Split it into 3000‑word chunks.
+
+Create a small DataFrame with one column text.
+
+Apply the pretrained pipeline.
+
+Write the resulting annotated DataFrame to Parquet (overwrite mode).
+
+Discard the data and move to the next book.
+```
+
+```{python}
+#| label: annotation-pipeline
+#| code-fold: false
+
+import sparknlp
+from sparknlp.pretrained import PretrainedPipeline
+from pyspark.sql import SparkSession
+
+# Stop any previous Spark session to avoid port conflicts
+existing = SparkSession.getActiveSession()
+if existing:
+    existing.stop()
+
+# Start a Spark NLP session with limited memory
+spark = sparknlp.start(memory="1g")
+spark.conf.set("spark.sql.shuffle.partitions", "1")
+
+# Load the pretrained pipeline (will download once if not cached)
+explain_document_pipeline = PretrainedPipeline("explain_document_ml")
+
+# Process each book independently
+for book_title in all_urls:
     file_path = os.path.join("book_data", book_title + ".txt")
-    with open(file_path, "r") as f:
+    if not os.path.exists(file_path):
+        print(f"Missing {file_path}, skipping")
+        continue
+
+    with open(file_path, "r", encoding="utf-8") as f:
         book_text = f.read()
-    
+
+    # Chunk the text
     chunks = split_text(book_text, chunk_size=3000)
     book_data = [[chunk] for chunk in chunks]
-    
-    df = spark.createDataFrame(book_data).toDF("text")
-    result = explain_document_pipeline.transform(df)
-    
-    #  Write results to parquet immediately to free memory
-    result.write.mode("overwrite").parquet(f"results/{book_title}")
-    print(f" Done: {book_title}")
 
-print("All books processed!")
+    # Create a DataFrame for this book only
+    df = spark.createDataFrame(book_data).toDF("text")
+
+    # Run the NLP pipeline
+    result = explain_document_pipeline.transform(df)
+
+    # Persist annotated data to Parquet
+    result.write.mode("overwrite").parquet(f"results/{book_title}")
+    print(f"Done: {book_title}")
+
+print("All 29 novels processed!")
 
 ```
 
