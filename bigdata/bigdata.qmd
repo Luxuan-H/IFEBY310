@@ -328,8 +328,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 
-# ---------- 预备工作：流派定义 ----------
-# 左拉的作品集（用于区分流派: Realist vs Romantic）
+# ---------- Preparation: Literary School Definitions ----------
+# List of Zola's books to distinguish "Realist" from "Romantic"
 zola_books = [
     "la_fortune", "la_curee", "le_ventre", "la_conquete", "la_faute",
     "son_excellence", "l_assommoir", "une_page", "pot_bouille", 
@@ -393,12 +393,12 @@ chunk_stats = chunk_stats.withColumn(
     F.when(F.col("book").isin(zola_books), "Realist").otherwise("Romantic")
 )
 
-# 句子统计
+# Sentence statistics per book
 sentences_per_book = chunk_stats.groupBy("book", "school").agg(
     F.sum("num_sentences").alias("total_sentences")
 )
 
-# 单词和音节统计
+# Token and Syllable statistics
 tokens_exploded = chunk_stats.select("book", F.explode("tokens").alias("token_word"))
 tokens_exploded = tokens_exploded.withColumn("syllables", english_syllable_udf(F.col("token_word")))
 
@@ -407,7 +407,7 @@ words_per_book = tokens_exploded.groupBy("book").agg(
     F.sum("syllables").alias("total_syllables")
 )
 
-# 合并并计算 Flesch-Kincaid
+# Merge data and calculate Flesch-Kincaid Score
 book_agg = sentences_per_book.join(words_per_book, on="book")
 
 book_indices = book_agg.withColumn(
@@ -418,7 +418,7 @@ book_indices = book_agg.withColumn(
 
 pandas_indices = book_indices.toPandas()
 
-# 绘图：按流派区分颜色
+# Plotting: Color by Literary School
 fig_readability = px.bar(pandas_indices, x="book", y="FK_Score", color="school",
              title="Flesch-Kincaid Readability Indices per Novel",
              labels={"FK_Score": "Flesch-Kincaid Score", "school": "Literary School"})
@@ -455,10 +455,10 @@ def sliding_window_readability(book_name, window_size=500, step=250):
     return pd.DataFrame(results)
 
 highlight_books = {
-    "miserables": "blue",    # 浪漫主义 
-    "notre-dame": "cyan",    # 浪漫主义 
-    "germinal": "red",       # 现实主义 
-    "l_assommoir": "orange"  # 现实主义 
+    "miserables": "blue",    # Romantic
+    "notre-dame": "cyan",    # Romantic
+    "germinal": "red",       # Realist 
+    "l_assommoir": "orange"  # Realist 
 }
 
 window_sizes = [500, 2000]
@@ -515,33 +515,33 @@ from pyspark.sql import Window, functions as F
 import plotly.express as px
 import plotly.graph_objects as go
 
-print("開始處理 A.4.3 Zipf's Law 分析...")
+print("Processing 4.3 Zipf's Law Analysis...")
 
-# 檢查字段是否存在並提取單詞
+# Verify schema and extract words
 cols = annotated_df.columns
 if "lemmas" in cols:
-    print("使用 lemmas.result 進行統計...")
+    print("Using lemmas.result for frequency count...")
     words_df = annotated_df.select("book", F.explode("lemmas.result").alias("word"))
 elif "token" in cols:
-    print("未找到 lemmas，使用 token.result 並轉小寫進行統計...")
+    print("Lemmas not found, using token.result (lowercased)...")
     words_df = annotated_df.select("book", F.explode("token.result").alias("word"))
     words_df = words_df.withColumn("word", F.lower(F.col("word")))
 else:
-    print("錯誤：找不到可用的文本字段！請檢查標註流程。")
+    print("Error: Required fields not found! Check annotation pipeline.")
     words_df = None
 
 if words_df:
-    # 過濾掉標點和過短的詞
+    # Filter out punctuation and very short words
     words_df = words_df.filter(F.length(F.col("word")) > 1)
 
-    # 統計詞頻
+    # Word frequency count
     word_counts = words_df.groupBy("book", "word").agg(F.count("*").alias("frequency"))
 
-    # 計算排名
+    # Calculate rank within each book
     window_spec = Window.partitionBy("book").orderBy(F.desc("frequency"))
     word_ranked = word_counts.withColumn("rank", F.row_number().over(window_spec))
 
-    # 轉為 Pandas 並繪圖
+    # Convert to Pandas for plotting
     zipf_pd = word_ranked.toPandas()
     
     if len(zipf_pd) > 0:
@@ -549,23 +549,23 @@ if words_df:
                            log_x=True, log_y=True, 
                            title="Zipf Distribution per Document (Log-Log Scale)")
         
-        # 添加理論斜率參考線
+        # Add ideal slope (-1) as a reference line
         max_f = zipf_pd['frequency'].max()
         fig_zipf.add_trace(go.Scatter(x=[1, 10000], y=[max_f, max_f/10000],
                                       mode="lines", line=dict(dash="dash", color="black"), 
                                       name="Ideal slope -1"))
         
         fig_zipf.write_html("plots/zipf.html")
-        print("✅ plots/zipf.html")
+        print(" plots/zipf.html")
     else:
-        print("⚠ ：Zipf 數據為空，未生成圖表。")
+        print("Warning: Empty Zipf data, plot not generated.")
 
 # ============================================================
 # A.4.4 Dialogue vs. Narration Segmentation
 # ============================================================
 def is_dialogue(sentence_text):
     if sentence_text is None: return False
-    # 由于全是英文，主要依赖双引号和单引号进行启发式判断
+    # Heuristic check for dialogue based on quotation marks
     return ('"' in sentence_text) or ("''" in sentence_text)
 
 is_dialogue_udf = F.udf(is_dialogue, BooleanType())
