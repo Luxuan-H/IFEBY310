@@ -9,34 +9,27 @@ engine: jupyter
 
 ## 1.1 Corpus Composition
 
-## 1.1 Corpus Composition
-
 The corpus consists of **29 French novels** from two literary movements:
 
 - **Realist** – 19 novels by Émile Zola, most of them belonging to the *Rougon‑Macquart* cycle.
 - **Romantic** – 10 works by Victor Hugo, including major novels (e.g., *Notre‑Dame de Paris*, *Les Misérables*) as well as shorter pieces such as *Bug‑Jargal* and *Claude Gueux*.
 
-All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format. 
+All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format.
 
-##1.2 Extraction Logic
+## 1.2 Extraction Logic
 
 The goal of the extraction is to obtain only the narrative body of each novel, stripping away Gutenberg’s header, table of contents, and legal notices. This is achieved by:
 
-```         
-Checking if the cleaned file already exists in book_data/ (to avoid re‑downloading).
-
-Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
-
-Extracting the text between the custom start and end tokens defined above.
-
-Saving the cleaned excerpt as book_data/<book_title>.txt.
-```
+1. Checking if the cleaned file already exists in `book_data/` (to avoid re‑downloading).
+2. Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
+3. Extracting the text between the custom start and end tokens defined above.
+4. Saving the cleaned excerpt as `book_data/<book_title>.txt`.
 
 The extraction pipeline is fully reproducible; running the code below on any machine with internet access will recreate the identical book_data/ directory.
 
 After execution, the book_data/ folder contains 29 cleaned .txt files, one per novel.
 
-#2. Load and Transform Pipeline
+# 2. Load and Transform Pipeline
 
 The cleaned texts must be converted into a Spark DataFrame suitable for annotation. Given the **4 GB RAM constraint**, each novel is split into **chunks of 3000 words**. This keeps individual rows small enough to be processed by the NLP pipeline without triggering out‑of‑memory errors.
 
@@ -48,30 +41,70 @@ No separate “load all books” DataFrame is created. Instead, loading, chunkin
 
 # 3. Annotation Pipeline
 
-Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides:
-Sentence detection
-Tokenization
-Lemmatization
-Part‑of‑speech tagging
+Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides: Sentence detection Tokenization Lemmatization Part‑of‑speech tagging
 
 It is multilingual (hence the ml suffix) and works out of the box for French.
 
-We launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel we:
-Read the cleaned text from book_data/.
-Split it into 3000‑word chunks.
-Create a small DataFrame with one column text.
-Apply the pretrained pipeline.
-Write the resulting annotated DataFrame to Parquet (overwrite mode).
-Discard the data and move to the next book.
+We launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. 
+For each novel we: Read the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
 
+# 4. Stylometric Analysis
+
+This section presents a stylometric comparison between the Realist (Émile Zola) and Romantic (Victor Hugo) sub-corpora. All analyzed texts are English translations of the original French works. To ensure data integrity, metrics were computed using decoupled PySpark aggregations before applying readability formulas.
+
+## 4.1 Readability Indices Comparison
+
+To evaluate syntactic and lexical complexity, the Flesch-Kincaid (FK) readability formula was applied to the corpus. 
+
+```{=html}
+<iframe src="plots/readability_unified.html" width="100%" height="500px" style="border:none;"></iframe>
+```
+*Figure 4.1: Flesch-Kincaid Readability Indices per Novel grouped by Literary School.*
+
+As illustrated in Figure 4.1, the FK scores for the translated novels generally fall within the 65 to 80 range. A notable observation is the difference in variance between the two literary movements. The Realist corpus exhibits greater internal variance; for instance, texts such as L'Argent and La Curée record lower readability scores (below 70), indicating denser syntactic structures or highly specialized vocabulary. Conversely, the Romantic corpus demonstrates a more tightly clustered distribution, suggesting a relatively consistent baseline of textual complexity across the provided translations.
+
+## 4.2 Stability of Readability Indices over Sliding Windows
+
+To assess the dynamic stability of the readability index throughout the narrative progression, a sliding window approach was implemented.
+
+```{=html}
+<iframe src="plots/sliding_window_ws2000.html" width="100%" height="600px" style="border:none;"></iframe>
+```
+*Figure 4.2: Sliding Window Flesch-Kincaid Readability with a window size of 2000 tokens.*
+
+Figure 4.2 displays the FK scores calculated over a window size of 2000 tokens. The light grey lines represent the entire corpus, establishing a baseline volatility for the 19th-century translations. Highlighting specific representative texts reveals macro-structural features. For example, the extended x-axis for Les Misérables accurately reflects its massive token count compared to other works. Additionally, sharp local drops in the FK score (such as the distinct dip in Notre-Dame around the 100k token mark) suggest dense narrative transitions, likely corresponding to complex descriptive passages where sentence lengths naturally increase.
+
+## 4.3 Zipf's Law Distribution
+
+To verify the statistical distribution of the vocabulary, the rank-frequency distribution of the lemmatized tokens was analyzed on a log-log scale for each document.
+
+```{=html}
+<iframe src="plots/zipf.html" width="100%" height="500px" style="border:none;"></iframe>
+```
+*Figure 4.3: Zipf Distribution per Document plotted on a log-log scale.*
+
+Figure 4.3 illustrates a highly consistent power-law distribution across the entire corpus. The black dashed line represents the ideal Zipfian slope of -1.Correlation with Text Length: A clear horizontal stratification is observed. The curves extending furthest to the right correspond to the longest epic novels in the corpus, specifically Hugo's Les Misérables and Zola's La Débâcle. This extension indicates a larger absolute vocabulary size (higher total number of unique ranks), as expected for works of such magnitude.Short-Form Works: Conversely, the curves situated at the leftmost part of the distribution represent shorter works, such as Hugo’s Claude Gueux, Le Dernier Jour d'un Condamné, Han d'Islande, and Bug-Jargal. These plots truncate at lower ranks (around $10^3$), reflecting the limited lexical diversity inherent in shorter narrative forms.Slope Consistency: Despite the significant differences in document length and literary movement, all 29 curves remain parallel to each other and closely align with the ideal slope of -1. This structural parallelism demonstrates that the statistical "economy of language"—the ratio between high-frequency functional words and low-frequency content words—remains invariant across the Realist and Romantic sub-corpora.
+
+## 4.4 Sentence Length: Dialogue vs. Narration
+
+Sentences were categorized into dialogue and narration to compare structural differences. The classification relied on a heuristic rule checking for the presence of quotation marks (" or '').
+
+```{=html}
+<iframe src="plots/dialogue.html" width="100%" height="500px" style="border:none;"></iframe>
+```
+*Figure 4.4: Average Sentence Length: Dialogue vs. Narration by Literary School.*
+
+Figure 4.4 presents an unexpected data pattern: sentences classified as dialogue are, on average, longer than narrative sentences in both literary schools. Rather than reflecting an actual 19th-century stylistic feature, this anomaly highlights the limitations of the employed heuristic rule. Long narrative sentences that contain brief embedded quotes are entirely classified as dialogue, which artificially inflates the average length of the dialogue category. Consequently, while the data pipeline executed accurately, it demonstrates that simple string-matching heuristics are insufficient for precise dialogue extraction in complex literary texts.
 
 ```{python}
 #| eval: false
 #| code-fold: true
+
 import os.path
 import sys
 import requests
 import sparknlp
+import plotly.graph_objects as go
 from sparknlp.pretrained import PretrainedPipeline
 from pyspark.sql import SparkSession
 
@@ -221,6 +254,7 @@ for book_title, url in all_urls.items():
 ```{python}
 #| eval: false
 #| code-fold: true
+
 # =====================================================================
 # Helper function: split a text into word-based chunks
 # =====================================================================
@@ -278,7 +312,291 @@ print("All 29 novels processed!")
 
 ```
 
+```{python}
+#| eval: false
+#| code-fold: true
+
+# ============================================================
+# A.4 Stylometric Analysis (Unified English Corpus Optimized)
+# ============================================================
+import os
+import re
+import sparknlp
+from pyspark.sql import SparkSession, functions as F, Window
+from pyspark.sql.types import IntegerType, BooleanType
+import plotly.express as px
+import plotly.graph_objects as go
+import pandas as pd
+
+# ---------- 预备工作：流派定义 ----------
+# 左拉的作品集（用于区分流派: Realist vs Romantic）
+zola_books = [
+    "la_fortune", "la_curee", "le_ventre", "la_conquete", "la_faute",
+    "son_excellence", "l_assommoir", "une_page", "pot_bouille", 
+    "au_bonheur", "la_joie", "germinal", "l_oeuvre", "la_terre", 
+    "le_reve", "la_bete", "l_argent", "la_debacle", "le_docteur"
+]
+
+# ---------- Spark Session ----------
+existing = SparkSession.getActiveSession()
+if existing:
+    existing.stop()
+
+spark = sparknlp.start(memory="1g")
+spark.conf.set("spark.sql.shuffle.partitions", "4")
+
+# ---------- Helper: Load Corpus ----------
+def load_annotated_corpus(results_dir="results"):
+    first = True
+    for folder in os.listdir(results_dir):
+        path = os.path.join(results_dir, folder)
+        if not os.path.isdir(path):
+            continue
+        df = spark.read.parquet(path)
+        df = df.withColumn("book", F.lit(folder))   
+        if first:
+            all_df = df
+            first = False
+        else:
+            all_df = all_df.unionByName(df)
+    return all_df
+
+annotated_df = load_annotated_corpus()
+
+# ---------- Helper: English Syllable Counting ----------
+def english_syllable_count(word):
+    word = word.lower()
+    if len(word) <= 3: return 1
+    word = re.sub(r'(?:[^laeiouy]es|ed|[^laeiouy]e)$', '', word)
+    word = re.sub(r'^y', '', word)
+    matches = re.findall(r'[aeiouy]{1,2}', word)
+    return max(1, len(matches))
+
+english_syllable_udf = F.udf(english_syllable_count, IntegerType())
+```
+
+```{python}
+#| eval: false
+#| code-fold: true
+
+# ============================================================
+# A.4.1 Readability Indices (Flesch-Kincaid Only)
+# ============================================================
+chunk_stats = annotated_df.select(
+    "book",
+    F.size("sentence").alias("num_sentences"),
+    "token.result"
+).withColumnRenamed("result", "tokens")
+
+chunk_stats = chunk_stats.withColumn(
+    "school",
+    F.when(F.col("book").isin(zola_books), "Realist").otherwise("Romantic")
+)
+
+# 句子统计
+sentences_per_book = chunk_stats.groupBy("book", "school").agg(
+    F.sum("num_sentences").alias("total_sentences")
+)
+
+# 单词和音节统计
+tokens_exploded = chunk_stats.select("book", F.explode("tokens").alias("token_word"))
+tokens_exploded = tokens_exploded.withColumn("syllables", english_syllable_udf(F.col("token_word")))
+
+words_per_book = tokens_exploded.groupBy("book").agg(
+    F.count("token_word").alias("total_words"),
+    F.sum("syllables").alias("total_syllables")
+)
+
+# 合并并计算 Flesch-Kincaid
+book_agg = sentences_per_book.join(words_per_book, on="book")
+
+book_indices = book_agg.withColumn(
+    "FK_Score",
+    F.round(206.835 - 1.015 * (F.col("total_words") / F.col("total_sentences")) - 
+            84.6 * (F.col("total_syllables") / F.col("total_words")), 2)
+)
+
+pandas_indices = book_indices.toPandas()
+
+# 绘图：按流派区分颜色
+fig_readability = px.bar(pandas_indices, x="book", y="FK_Score", color="school",
+             title="Flesch-Kincaid Readability Indices per Novel",
+             labels={"FK_Score": "Flesch-Kincaid Score", "school": "Literary School"})
+fig_readability.update_xaxes(categoryorder="category ascending") 
+fig_readability.write_html("plots/readability_unified.html")
+```
+
+```{python}
+#| eval: false
+#| code-fold: true
+
+# ============================================================
+# A.4.2 Sliding Window Readability (All Data + Highlight)
+# ============================================================
+def sliding_window_readability(book_name, window_size=500, step=250):
+    tokens_df = annotated_df.filter(F.col("book") == book_name).select("token")
+    all_words = []
+    for row in tokens_df.collect():
+        for token_ann in row.token:
+            all_words.append(token_ann.result)
+    
+    results = []
+    for start in range(0, len(all_words) - window_size + 1, step):
+        window_words = all_words[start:start+window_size]
+        sentences = sum(1 for w in window_words if w.endswith(('.', '!', '?')))
+        if sentences == 0:
+            continue
+        
+        word_count = len(window_words)
+        syllable_count = sum(english_syllable_count(w) for w in window_words)
+        score = 206.835 - 1.015 * (word_count / sentences) - 84.6 * (syllable_count / word_count)
+            
+        results.append({"position": start, "Score": score})
+    return pd.DataFrame(results)
+
+highlight_books = {
+    "miserables": "blue",    # 浪漫主义 
+    "notre-dame": "cyan",    # 浪漫主义 
+    "germinal": "red",       # 现实主义 
+    "l_assommoir": "orange"  # 现实主义 
+}
+
+window_sizes = [500, 2000]
+all_book_names = annotated_df.select("book").distinct().toPandas()["book"].tolist()
+
+for ws in window_sizes:
+    fig_sliding = go.Figure()
+    
+    for book in all_book_names:
+        df_slide = sliding_window_readability(book, window_size=ws, step=ws//2)
+        
+        if df_slide.empty: continue
+            
+        if book in highlight_books:
+            line_color = highlight_books[book]
+            line_width = 2.5
+            opacity = 1.0
+            showlegend = True
+        else:
+            line_color = "lightgrey"
+            line_width = 1
+            opacity = 0.4
+            showlegend = False 
+            
+        fig_sliding.add_trace(go.Scatter(
+            x=df_slide["position"], 
+            y=df_slide["Score"],
+            mode="lines", 
+            name=book if showlegend else "",
+            line=dict(color=line_color, width=line_width),
+            opacity=opacity,
+            showlegend=showlegend,
+            hoverinfo="name+y"
+        ))
+
+    fig_sliding.update_layout(
+        title=f"Sliding Window Flesch-Kincaid Readability (Window Size = {ws})",
+        xaxis_title="Token Position", 
+        yaxis_title="FK Score",
+        template="plotly_white"
+    )
+    fig_sliding.write_html(f"plots/sliding_window_ws{ws}.html")
+    
+```
+
+```{python}
+#| eval: false
+#| code-fold: true
+
+# ============================================================
+# A.4.3 Zipf Distribution per Document (Robust Version)
+# ============================================================
+from pyspark.sql import Window, functions as F
+import plotly.express as px
+import plotly.graph_objects as go
+
+print("開始處理 A.4.3 Zipf's Law 分析...")
+
+# 檢查字段是否存在並提取單詞
+cols = annotated_df.columns
+if "lemmas" in cols:
+    print("使用 lemmas.result 進行統計...")
+    words_df = annotated_df.select("book", F.explode("lemmas.result").alias("word"))
+elif "token" in cols:
+    print("未找到 lemmas，使用 token.result 並轉小寫進行統計...")
+    words_df = annotated_df.select("book", F.explode("token.result").alias("word"))
+    words_df = words_df.withColumn("word", F.lower(F.col("word")))
+else:
+    print("錯誤：找不到可用的文本字段！請檢查標註流程。")
+    words_df = None
+
+if words_df:
+    # 過濾掉標點和過短的詞
+    words_df = words_df.filter(F.length(F.col("word")) > 1)
+
+    # 統計詞頻
+    word_counts = words_df.groupBy("book", "word").agg(F.count("*").alias("frequency"))
+
+    # 計算排名
+    window_spec = Window.partitionBy("book").orderBy(F.desc("frequency"))
+    word_ranked = word_counts.withColumn("rank", F.row_number().over(window_spec))
+
+    # 轉為 Pandas 並繪圖
+    zipf_pd = word_ranked.toPandas()
+    
+    if len(zipf_pd) > 0:
+        fig_zipf = px.line(zipf_pd, x="rank", y="frequency", color="book", 
+                           log_x=True, log_y=True, 
+                           title="Zipf Distribution per Document (Log-Log Scale)")
+        
+        # 添加理論斜率參考線
+        max_f = zipf_pd['frequency'].max()
+        fig_zipf.add_trace(go.Scatter(x=[1, 10000], y=[max_f, max_f/10000],
+                                      mode="lines", line=dict(dash="dash", color="black"), 
+                                      name="Ideal slope -1"))
+        
+        fig_zipf.write_html("plots/zipf.html")
+        print("✅ plots/zipf.html")
+    else:
+        print("⚠ ：Zipf 數據為空，未生成圖表。")
+
+# ============================================================
+# A.4.4 Dialogue vs. Narration Segmentation
+# ============================================================
+def is_dialogue(sentence_text):
+    if sentence_text is None: return False
+    # 由于全是英文，主要依赖双引号和单引号进行启发式判断
+    return ('"' in sentence_text) or ("''" in sentence_text)
+
+is_dialogue_udf = F.udf(is_dialogue, BooleanType())
+
+sentences_df = annotated_df.select(
+    "book",
+    F.explode("sentence.result").alias("sentence")
+)
+sentences_df = sentences_df.withColumn("dialogue", is_dialogue_udf(F.col("sentence")))
+sentences_df = sentences_df.withColumn("length", F.length(F.col("sentence")))
+
+sentences_df = sentences_df.withColumn(
+    "school",
+    F.when(F.col("book").isin(zola_books), "Realist").otherwise("Romantic")
+)
+
+summary = sentences_df.groupBy("school", "dialogue").agg(
+    F.avg("length").alias("avg_length"),
+    F.count("*").alias("sentence_count")
+).toPandas()
+
+summary["category"] = summary["dialogue"].map({True: "Dialogue", False: "Narration"})
+
+fig_dialogue = px.bar(summary, x="school", y="avg_length", color="category", barmode="group",
+                      title="Average Sentence Length: Dialogue vs. Narration by Literary School",
+                      labels={"avg_length": "Avg Characters per Sentence", "school": "Literary Movement"})
+fig_dialogue.write_html("plots/dialogue.html")
+
+print("All stylometric analyses complete!")
+```
 
 
 
-Note that we included the cell option `fold: true` to hide the code by default (click the *Code* button to show it).
+
