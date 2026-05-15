@@ -1,6 +1,7 @@
 ---
 title: "Stylometric Analysis of 19th Century French Novels with Spark NLP"
-author: "Luxuan HUANG"
+subtitle: "Project of IFEBY310 Big Data Technologies"
+author: "Luxuan HUANG <br> M1 Logos-Maths <br>"
 format: html
 engine: jupyter
 ---
@@ -43,122 +44,84 @@ For each novel, we read the cleaned text from book_data/. Split it into 3000‑w
 
 This section presents the data analysis. We first analyze the 29 English translations. Then we analyze the 6 French originals. Finally, we compare the data to find technical and structural patterns.
 
-## 4.1 Analysis of English Translations
+## 4.1 Global Readability Comparison
 
-This sub-section looks at the dataset of 29 translated books.
-
-### 4.1.1 Readability Indices
-I used the Flesch-Kincaid formula to test text complexity.
-
+We evaluated the overall text complexity using two different formulas. For the English translations, we applied the Flesch-Kincaid formula. For the French originals, we applied the Kandel-Moles formula. These formulas use sentence lengths and syllable counts to calculate a score. A higher score means the text is easier to read.
+```{=html}
+<iframe src="plots/readability_unified.html" width="100%" height="400px" style="border:none;"></iframe>
+```
+*Figure 4.1.1: Flesch-Kincaid Readability (English Translations).*
 
 ```{=html}
-<iframe src="plots/readability_unified.html" width="100%" height="500px" style="border:none;"></iframe>
+<iframe src="plots/kandel_moles_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
-*Figure 4.1.1: Flesch-Kincaid Readability Indices per Novel grouped by Literary School.*
+*Figure 4.1.2: Kandel-Moles Readability (French Originals).*
 
-As illustrated in Figure 4.1, the FK scores for the translated novels generally fall within the 65 to 80 range. A notable observation is the difference in variance between the two literary movements. The Realist corpus exhibits greater internal variance; for instance, texts such as L'Argent and La Curée record lower readability scores (below 70), indicating denser syntactic structures or highly specialized vocabulary. Conversely, the Romantic corpus demonstrates a more tightly clustered distribution, suggesting a relatively consistent baseline of textual complexity across the provided translations.
+The English translation data in Figure 4.1.1 shows a wide distribution of scores. Most novels fall between 65 and 80. However, the variance between the two literary schools is not equal. The Realist group by Zola shows a very high internal variance. Some specific Realist texts like L'Argent and La Curée score well below 70. This low score means the text uses very long sentences or complex words. In contrast, the Romantic group by Hugo shows a tight cluster. The scores for Hugo's translations remain stable across different books.
 
-### 4.1.2 Stability of Readability Indices over Sliding Windows
+When we look at the French originals in Figure 4.1.2, the data pattern changes completely. The Kandel-Moles scores for both the Realist and Romantic groups are tightly clustered between 84 and 89. The internal variance for Zola's texts disappears in the French version. His French texts score almost the same as Hugo's French texts.
 
-To assess the dynamic stability of the readability index throughout the narrative progression, a sliding window approach was implemented.
+This direct comparison provides important information about the data. The high variance in the English Realist texts does not exist in the original French texts. Therefore, this variance is not a feature of the original author's style. The difference was introduced during the translation process. Different English translators used different sentence structures and vocabulary levels. In the original French language, both authors wrote within a similar baseline of textual complexity.
+
+## 4.2 Readability Volatility over Sliding Windows
+
+We used a sliding window approach to analyze the dynamic stability of readability throughout the texts. The window size was set to 2000 tokens. This method calculates the readability score for every 2000 words to show how text complexity changes from the beginning to the end of each novel.
 
 ```{=html}
-<iframe src="plots/sliding_window_ws2000.html" width="100%" height="600px" style="border:none;"></iframe>
+<iframe src="plots/sliding_window_ws2000.html" width="100%" height="450px" style="border:none;"></iframe>
 ```
-*Figure 4.1.2: Sliding Window Flesch-Kincaid Readability with a window size of 2000 tokens.*
-
-Figure 4.2 displays the FK scores calculated over a window size of 2000 tokens. The light grey lines represent the entire corpus, establishing a baseline volatility for the 19th-century translations. Highlighting specific representative texts reveals macro-structural features. For example, the extended x-axis for Les Misérables accurately reflects its massive token count compared to other works. Additionally, sharp local drops in the FK score (such as the distinct dip in Notre-Dame around the 100k token mark) suggest dense narrative transitions, likely corresponding to complex descriptive passages where sentence lengths naturally increase.
-
-### 4.1.3 Zipf's Law Distribution
-
-To verify the statistical distribution of the vocabulary, the rank-frequency distribution of the lemmatized tokens was analyzed on a log-log scale for each document.
+*Figure 4.2.1: Sliding Window Readability (English Translations).*
 
 ```{=html}
-<iframe src="plots/zipf.html" width="100%" height="500px" style="border:none;"></iframe>
+<iframe src="plots/sliding_window_fr.html" width="100%" height="450px" style="border:none;"></iframe>
 ```
-*Figure 4.1.3: Zipf Distribution per Document plotted on a log-log scale.*
+*Figure 4.2.2: Sliding Window Readability (French Originals).*
 
-Figure 4.3 illustrates a highly consistent power-law distribution across the entire corpus. The black dashed line represents the ideal Zipfian slope of -1.Correlation with Text Length: A clear horizontal stratification is observed. The curves extending furthest to the right correspond to the longest epic novels in the corpus, specifically Hugo's Les Misérables and Zola's La Débâcle. This extension indicates a larger absolute vocabulary size (higher total number of unique ranks), as expected for works of such magnitude.Short-Form Works: Conversely, the curves situated at the leftmost part of the distribution represent shorter works, such as Hugo’s Claude Gueux, Le Dernier Jour d'un Condamné, Han d'Islande, and Bug-Jargal. These plots truncate at lower ranks (around $10^3$), reflecting the limited lexical diversity inherent in shorter narrative forms.Slope Consistency: Despite the significant differences in document length and literary movement, all 29 curves remain parallel to each other and closely align with the ideal slope of -1. This structural parallelism demonstrates that the statistical "economy of language"—the ratio between high-frequency functional words and low-frequency content words—remains invariant across the Realist and Romantic sub-corpora.
+The English translation data in Figure 4.2.1 shows high local volatility across all texts. The curves do not remain flat. Instead, they move up and down heavily between the scores of 50 and 100. The horizontal x-axis shows the narrative progression. The line for Les Miserables extends much further to the right than any other book, which directly represents its massive total word count. We also see clear local drops in specific books. For example, the line for Notre-Dame shows a sharp downward spike near the 100k token mark. In this specific part of the translation, the score drops below 60.
 
-### 4.1.4 Dialogue vs. Narration
+The French original data in Figure 4.2.2 displays the exact same volatility pattern. The Kandel-Moles scores for the 6 French books fluctuate constantly as the story progresses. The most important observation is the behavior of Notre-Dame in the French version. The purple line shows two major drops, one near the 50k token mark and another near the 100k token mark. In these two sections, the readability score plunges below 50.
 
-Sentences were categorized into dialogue and narration to compare structural differences. The classification relied on a heuristic rule checking for the presence of quotation marks (" or '').
+This direct comparative data provides a clear structural conclusion. The local drops and the constant variance appear in both the English translations and the French originals. The drops occur at equivalent narrative positions in both languages. Therefore, this volatility is not a translation artifact. The data proves that these shifts in complexity are an inherent feature of the original author's text structure. In these specific chapters, sentence lengths increase and vocabulary becomes denser in both languages.
+
+## 4.3 Vocabulary Distribution and Zipf's Law
+
+We verified the statistical distribution of the vocabulary across both datasets. We counted the frequency of each lemmatized word and ranked them from most frequent to least frequent. Then, we plotted the rank on the x-axis and the frequency on the y-axis using a log-log scale. A black dashed line represents the ideal Zipfian slope of -1.
 
 ```{=html}
-<iframe src="plots/dialogue.html" width="100%" height="500px" style="border:none;"></iframe>
+<iframe src="plots/zipf.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
-*Figure 4.1.4: Dialogue vs. Narration.*
-
-Figure 4.4 presents an unexpected data pattern: sentences classified as dialogue are, on average, longer than narrative sentences in both literary schools. Rather than reflecting an actual 19th-century stylistic feature, this anomaly highlights the limitations of the employed heuristic rule. Long narrative sentences that contain brief embedded quotes are entirely classified as dialogue, which artificially inflates the average length of the dialogue category. Consequently, while the data pipeline executed accurately, it demonstrates that simple string-matching heuristics are insufficient for precise dialogue extraction in complex literary texts.
-
-## 4.2 Analysis of French Originals
-This sub-section looks at the control dataset of 6 French books. We used language-specific rules for this pipeline.
-
-### 4.2.1 Readability Indices
-
-We used the Kandel-Moles formula to test French text complexity.
+*Figure 4.3.1: Zipf Distribution (English Translations).*
 
 ```{=html}
-<iframe src="plots/kandel_moles_fr.html" width="100%" height="500px" style="border:none;"></iframe>
+<iframe src="plots/zipf_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
-*Figure 4.2.1: Kandel-Moles Readability (French Originals).*
+*Figure 4.3.2: Zipf Distribution (French Originals).*
 
-Figure 4.2.1 shows scores tightly clustered between 84 and 89. Both literary schools have very similar baseline scores.
+The English translation data in Figure 4.3.1 shows a highly consistent power-law distribution. All 29 curves are parallel to each other and closely follow the ideal black dashed line. The data shows a clear vertical and horizontal stratification based on text length. The curves that extend furthest to the right represent the longest novels in the corpus, such as Les Miserables. These curves reach higher ranks near 10k, which shows a larger absolute vocabulary size. Conversely, the curves on the far left represent short stories like Claude Gueux. These plots truncate early around lower ranks near 1k, which directly represents their limited lexical diversity.
 
-### 4.2.2 Sliding Window Stability
+The French original data in Figure 4.3.2 displays the exact same mathematical behavior. All 6 curves for the original French texts are perfectly parallel. They tightly align with the ideal slope of -1, just like the English data. The longer French texts also extend further to the right than the shorter pieces.
 
-We applied the same 2000-token window.
+This comparative analysis demonstrates a universal mathematical law in text processing. The rank-frequency distribution of tokens remains completely stable across different languages and different literary schools. Whether we analyze 29 English translations or 6 French originals, and whether the text belongs to Zola or Hugo, the statistical ratio between high-frequency words and low-frequency words does not change. This proves that Zipf's Law is an invariant property of human language that transcends both translation and author style.
+
+## 4.4 Readability of Pure Dialogue
+
+We isolated the pure dialogue text from both datasets to calculate its specific readability. We used the Flesch-Kincaid formula for the English translations and the Kandel-Moles formula for the French originals.
 
 ```{=html}
-<iframe src="plots/sliding_window_fr.html" width="100%" height="600px" style="border:none;"></iframe>```
+<iframe src="plots/dialogue_readability_en.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
-*Figure 4.2.2: Sliding Window Readability(French Originals).*
-
-Figure 4.2.2 shows the same high volatility seen in the English texts. The score for Notre-Dame again drops significantly around the 50k and 100k token marks.
-
-### 4.2.3 Zipf's Law Distribution
-
-We plotted word frequency for the French words.
+*Figure 4.4.1: Flesch-Kincaid Readability of Pure Dialogue (English Translations).*
 
 ```{=html}
-<iframe src="plots/zipf_fr.html" width="100%" height="500px" style="border:none;"></iframe>
+<iframe src="plots/dialogue_readability_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
-*Figure 4.2.3: Zipf Distribution(French Originals).*
+*Figure 4.4.2: Readability of Pure Dialogue (French Originals).*
 
-Figure 4.2.3 shows all 6 curves perfectly follow the slope of -1.
+The English translation data in Figure 4.4.1 shows that the pure dialogue scores for both schools are almost identical. The Realist score and the Romantic score sit very close between 70 and 71. There is no significant difference between the two groups. This flat result happens because the English dataset contains long narrative text inside the dialogue category. The simple quotation mark rule caused this data pollution. The long narrative sentences pulled the readability scores down and hid the stylistic differences.
 
+The French original data in Figure 4.4.2 reveals a much clearer distinction. The Realist pure dialogue scores above 100 on the Kandel-Moles index. This very high score means that the characters use short words and simple structures. The Romantic pure dialogue scores lower, around 98. This means Hugo's characters use longer words and more complex speech.
 
-### 4.2.4 Dialogue vs. Narration
-
-We used a precise Regular Expression rule to extract French dialogue. We targeted French guillemets and em dashes.
-
-```{=html}
-<iframe src="plots/dialogue_fr.html" width="100%" height="500px" style="border:none;"></iframe>
-```
-*Figure 4.2.4: Sentence Length (French Originals).*
-
-Figure 4.2.4 shows the corrected data. Narration is now longer than dialogue. Realist dialogue is significantly shorter than Romantic dialogue.
-
-### 4.2.5 Pure Dialogue Readability
-
-We applied the Kandel-Moles formula only to the extracted French dialogue.
-
-```{=html}
-<iframe src="plots/dialogue_readability_fr.html" width="100%" height="500px" style="border:none;"></iframe>
-```
-*Figure 4.2.5: Pure Dialogue Readability (French Originals).*
-
-Figure 4.2.5 shows the Realist dialogue scores above 100. The Romantic dialogue scores around 98. This data means Realist speech patterns use shorter words and simpler structures.
-
-## 4.3 Cross-Lingual Synthesis
-
-By comparing the English data (Section 4.1) and the French data (Section 4.2), we found three data-driven conclusions.
-
-First, the translation process changes syntactic metrics. In Section 4.1, the English Realist texts showed high variance in readability. However, in Section 4.2, the French originals showed a very tight cluster. This data indicates that the variance in the English texts comes from the translators, not the original authors.
-
-Second, basic structural patterns transcend language. Both datasets strictly follow Zipf's Law with a slope of -1. Both datasets also show identical readability drops in specific books like Notre-Dame.
-
-Third, simple NLP rules are insufficient for complex texts. The basic string-matching rule in the English pipeline created a false anomaly where dialogue appeared longer than narration. Using precise, language-specific extraction rules in the French pipeline fixed this error and revealed the true data structure.
+Comparing the two figures provides an important conclusion about data quality. The true difference between the literary schools only appears when the data cleaning is precise. In the English pipeline, the weak extraction rule mixed narration into dialogue and flattened the analysis. In the French pipeline, the precise regular expressions removed the noise. The clean data proves that Realist dialogue is much simpler than Romantic dialogue in the original language.
 
 ```{python}
 #| eval: false
@@ -488,6 +451,70 @@ fig_readability = px.bar(pandas_indices, x="book", y="FK_Score", color="school",
              labels={"FK_Score": "Flesch-Kincaid Score", "school": "Literary School"})
 fig_readability.update_xaxes(categoryorder="category ascending") 
 fig_readability.write_html("plots/readability_unified.html")
+
+#=======dialogue===============================
+# Create sentences_df_en directly from the existing annotated_df
+sentences_extracted = annotated_df.select(
+    "book",
+    F.explode("sentence.result").alias("sentence")
+)
+
+# Add the school column to the sentences using zola_books list
+sentences_extracted = sentences_extracted.withColumn(
+    "school",
+    F.when(F.col("book").isin(zola_books), "Realist").otherwise("Romantic")
+)
+
+# Identify dialogue sentences by checking for quotation marks
+sentences_df_en = sentences_extracted.withColumn(
+    "dialogue",
+    F.col("sentence").contains('"') | F.col("sentence").contains("'")
+)
+
+# Filter out pure dialogue sentences from the English dataset
+dialogue_only_en = sentences_df_en.filter(F.col("dialogue") == True)
+
+# Split the dialogue sentences into individual words
+dialogue_words_en = dialogue_only_en.withColumn(
+    "word", F.explode(F.split(F.col("sentence"), r"\W+"))
+).filter(F.length(F.col("word")) > 0)
+
+# Calculate syllables using your exact function name from the top code
+dialogue_words_en = dialogue_words_en.withColumn("syllables", english_syllable_udf(F.col("word")))
+
+dialogue_word_stats_en = dialogue_words_en.groupBy("school").agg(
+    F.count("word").alias("total_words"),
+    F.sum("syllables").alias("total_syllables")
+)
+
+dialogue_sentence_stats_en = dialogue_only_en.groupBy("school").agg(
+    F.count("sentence").alias("total_sentences")
+)
+
+# Join the metrics and apply the Flesch-Kincaid formula
+dialogue_fk = dialogue_word_stats_en.join(dialogue_sentence_stats_en, on="school")
+dialogue_fk = dialogue_fk.withColumn(
+    "Dialogue_FK_Score",
+    F.round(206.835 - 1.015 * (F.col("total_words") / F.col("total_sentences")) - 84.6 * (F.col("total_syllables") / F.col("total_words")), 2)
+)
+
+# Convert the results to a Pandas DataFrame for plotting
+dialogue_fk_pd = dialogue_fk.toPandas()
+
+# Create the bar chart to compare schools
+fig_dialogue_fk = px.bar(
+    dialogue_fk_pd, 
+    x="school", 
+    y="Dialogue_FK_Score", 
+    color="school",
+    title="Readability of Pure Dialogue (Flesch-Kincaid)",
+    labels={"Dialogue_FK_Score": "Flesch-Kincaid Score (Higher = Easier)"},
+    color_discrete_map={"Realist": "blue", "Romantic": "red"}
+)
+
+fig_dialogue_fk.update_layout(template="plotly_white")
+fig_dialogue_fk.write_html("plots/dialogue_readability_en.html")
+
 ```
 
 ```{python}
@@ -661,7 +688,6 @@ fig_dialogue.write_html("plots/dialogue.html")
 print("All stylometric analyses complete!")
 ```
 
-
 ```{python}
 #| eval: false
 #| code-fold: true
@@ -771,7 +797,7 @@ def load_fr_corpus():
 df_fr = load_fr_corpus()
 
 # =====================================================================
-# 3. Kandel-Moles Readability
+#  Kandel-Moles Readability
 # =====================================================================
 def french_syllable_count(word):
     word = word.lower()
@@ -803,9 +829,6 @@ fig_km = px.bar(book_indices_fr.toPandas(), x="book", y="KM_Score", color="schoo
                 labels={"KM_Score": "Kandel-Moles Score"})
 fig_km.write_html("plots/kandel_moles_fr.html")
 
-```
-
-```{python}
 #Kandel-Moles for Dialogues Only
 # 
 dialogue_only_fr = sentences_df_fr.filter(F.col("dialogue") == True)
@@ -854,9 +877,6 @@ fig_dialogue_km.write_html("plots/dialogue_readability_fr.html")
 
 print("plots/dialogue_readability_fr.html")
 
-```
-
-```{python}
 # =====================================================================
 # French Sliding Window
 # =====================================================================
@@ -920,6 +940,6 @@ fig_dialogue_fr = px.bar(summary_fr, x="school", y="avg_length", color="category
                          labels={"avg_length": "Avg Characters per Sentence"})
 fig_dialogue_fr.write_html("plots/dialogue_fr.html")
 
-print("✅french version")
+print("Ok_rench version")
 
 ```
