@@ -535,8 +535,7 @@ def sliding_window_readability(book_name, window_size=500, step=250):
     for start in range(0, len(all_words) - window_size + 1, step):
         window_words = all_words[start:start+window_size]
         sentences = sum(1 for w in window_words if w.endswith(('.', '!', '?')))
-        if sentences == 0:
-            continue
+        if sentences == 0: continue
         
         word_count = len(window_words)
         syllable_count = sum(english_syllable_count(w) for w in window_words)
@@ -546,51 +545,34 @@ def sliding_window_readability(book_name, window_size=500, step=250):
     return pd.DataFrame(results)
 
 highlight_books = {
-    "miserables": "blue",    # Romantic
-    "notre-dame": "cyan",    # Romantic
-    "germinal": "red",       # Realist 
-    "l_assommoir": "orange"  # Realist 
+    "miserables": "blue",    
+    "notre-dame": "cyan",    
+    "germinal": "red",       
+    "l_assommoir": "orange"  
 }
 
 window_sizes = [500, 2000]
+
 all_book_names = annotated_df.select("book").distinct().toPandas()["book"].tolist()
 
 for ws in window_sizes:
     fig_sliding = go.Figure()
-    
     for book in all_book_names:
         df_slide = sliding_window_readability(book, window_size=ws, step=ws//2)
-        
         if df_slide.empty: continue
             
         if book in highlight_books:
-            line_color = highlight_books[book]
-            line_width = 2.5
-            opacity = 1.0
-            showlegend = True
+            line_color, line_width, opacity, showlegend = highlight_books[book], 2.5, 1.0, True
         else:
-            line_color = "lightgrey"
-            line_width = 1
-            opacity = 0.4
-            showlegend = False 
+            line_color, line_width, opacity, showlegend = "lightgrey", 1, 0.4, False 
             
         fig_sliding.add_trace(go.Scatter(
-            x=df_slide["position"], 
-            y=df_slide["Score"],
-            mode="lines", 
-            name=book if showlegend else "",
-            line=dict(color=line_color, width=line_width),
-            opacity=opacity,
-            showlegend=showlegend,
-            hoverinfo="name+y"
+            x=df_slide["position"], y=df_slide["Score"], mode="lines", 
+            name=book if showlegend else "", line=dict(color=line_color, width=line_width),
+            opacity=opacity, showlegend=showlegend, hoverinfo="name+y"
         ))
 
-    fig_sliding.update_layout(
-        title=f"Sliding Window Flesch-Kincaid Readability (Window Size = {ws})",
-        xaxis_title="Token Position", 
-        yaxis_title="FK Score",
-        template="plotly_white"
-    )
+    fig_sliding.update_layout(title=f"Sliding Window Flesch-Kincaid (Window = {ws})", template="plotly_white")
     fig_sliding.write_html(f"plots/sliding_window_ws{ws}.html")
     
 ```
@@ -600,7 +582,7 @@ for ws in window_sizes:
 #| code-fold: true
 
 # ============================================================
-# A.4.3 Zipf Distribution per Document (Robust Version)
+# A.4.3 Zipf Distribution per Document 
 # ============================================================
 from pyspark.sql import Window, functions as F
 import plotly.express as px
@@ -650,7 +632,9 @@ if words_df:
         print(" plots/zipf.html")
     else:
         print("Warning: Empty Zipf data, plot not generated.")
+```
 
+```{python}
 # ============================================================
 # A.4.4 Dialogue vs. Narration Segmentation
 # ============================================================
@@ -943,3 +927,8 @@ fig_dialogue_fr.write_html("plots/dialogue_fr.html")
 print("Ok_rench version")
 
 ```
+
+```{python}
+
+```
+
