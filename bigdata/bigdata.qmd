@@ -12,7 +12,11 @@ jupyter: python3
 
 ## 1.1 Corpus Composition
 
-My project analyzes a total of 35 French novels from the 19th century. I divided these books into two main datasets: Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline. Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. We use this group to find translation errors and test specific French algorithms.
+My project analyzes a total of 35 19th century French novels. I divided these books into two main datasets:
+
+Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.
+
+Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. This group is used to apply the Kandel-Moles readability index, which was designed for French.
 
 All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format.
 
@@ -31,13 +35,13 @@ Running our code will create two folders:`book_data/`(containing the 29 English 
 
 I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. We split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.
 
+The annotated results are saved to Parquet format. Parquet was chosen because it supports nested data types produced by Spark NLP, offers fast read times, and compresses data efficiently.
+
 # 3. Annotation Pipeline
 
-Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides: Sentence detection Tokenization Lemmatization Part‑of‑speech tagging
+Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides sentence detection, tokenization, lemmatization, and part-of-speech tagging. It is multilingual (hence the ml suffix) and works out of the box for French.
 
-It is multilingual (hence the ml suffix) and works out of the box for French.
-
-I launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, we read the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
+Spark is launched through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, the pipeline reads the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
 
 # 4. Stylometric Analysis
 
