@@ -77,10 +77,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </head>
 
-<body class="fullcontent quarto-light">
+<body class="quarto-light">
 
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
-
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#data-description-and-extraction-pipeline" id="toc-data-description-and-extraction-pipeline" class="nav-link active" data-scroll-target="#data-description-and-extraction-pipeline">1. Data Description and Extraction Pipeline</a>
+  <ul class="collapse">
+  <li><a href="#corpus-composition" id="toc-corpus-composition" class="nav-link" data-scroll-target="#corpus-composition">1.1 Corpus Composition</a></li>
+  <li><a href="#extraction-logic" id="toc-extraction-logic" class="nav-link" data-scroll-target="#extraction-logic">1.2 Extraction Logic</a></li>
+  </ul></li>
+  <li><a href="#load-and-transform-pipeline" id="toc-load-and-transform-pipeline" class="nav-link" data-scroll-target="#load-and-transform-pipeline">2. Load and Transform Pipeline</a></li>
+  <li><a href="#annotation-pipeline" id="toc-annotation-pipeline" class="nav-link" data-scroll-target="#annotation-pipeline">3. Annotation Pipeline</a></li>
+  <li><a href="#stylometric-analysis" id="toc-stylometric-analysis" class="nav-link" data-scroll-target="#stylometric-analysis">4. Stylometric Analysis</a>
+  <ul class="collapse">
+  <li><a href="#global-readability-comparison" id="toc-global-readability-comparison" class="nav-link" data-scroll-target="#global-readability-comparison">4.1 Global Readability Comparison</a></li>
+  <li><a href="#readability-volatility-over-sliding-windows" id="toc-readability-volatility-over-sliding-windows" class="nav-link" data-scroll-target="#readability-volatility-over-sliding-windows">4.2 Readability Volatility over Sliding Windows</a></li>
+  <li><a href="#vocabulary-distribution-and-zipfs-law" id="toc-vocabulary-distribution-and-zipfs-law" class="nav-link" data-scroll-target="#vocabulary-distribution-and-zipfs-law">4.3 Vocabulary Distribution and Zipf’s Law</a></li>
+  <li><a href="#dialogue-and-narration-analysis" id="toc-dialogue-and-narration-analysis" class="nav-link" data-scroll-target="#dialogue-and-narration-analysis">4.4 Dialogue and Narration Analysis</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
 <main class="content" id="quarto-document-content">
 
 <header id="title-block-header" class="quarto-title-block default">
@@ -140,51 +161,61 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="stylometric-analysis" class="level1">
 <h1>4. Stylometric Analysis</h1>
-<p>This section presents the data analysis. We first analyze the 29 English translations. Then we analyze the 6 French originals. Finally, we compare the data to find technical and structural patterns.</p>
+<p>This section addresses four analytical questions. First, do Realist and Romantic novels differ in overall text complexity? Second, how stable are readability scores across the length of a novel? Third, do all novels follow Zipf’s Law regardless of author or literary school? Fourth, is dialogue structurally different from narration in the two corpora? These questions were chosen because they can be answered directly from token and sentence-level annotations produced by Spark NLP</p>
 <section id="global-readability-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="global-readability-comparison">4.1 Global Readability Comparison</h2>
-<p>We evaluated the overall text complexity using two different formulas. For the English translations, we applied the Flesch-Kincaid formula. For the French originals, we applied the Kandel-Moles formula. These formulas use sentence lengths and syllable counts to calculate a score. A higher score means the text is easier to read.</p>
+<p>Two readability formulas were applied. For the English translations, the Flesch-Kincaid (FK) formula was used. For the French originals, the Kandel-Moles (KM) formula was used. Both formulas use sentence length and syllable counts to produce a score. A higher score means the text is easier to read.</p>
 <iframe src="plots/readability_unified.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.1.1: Flesch-Kincaid Readability (English Translations).</em></p>
+<p><img src="plots/FkScores.png" class="img-fluid"> <em>Table 4.1.1: FK Readability Scores for all 29 English novels, ordered from lowest to highest.</em></p>
 <iframe src="plots/kandel_moles_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.1.2: Kandel-Moles Readability (French Originals).</em></p>
-<p>The English translation data in Figure 4.1.1 shows a wide distribution of scores. Most novels fall between 65 and 80. However, the variance between the two literary schools is not equal. The Realist group by Zola shows a very high internal variance. Some specific Realist texts like L’Argent and La Curée score well below 70. This low score means the text uses very long sentences or complex words. In contrast, the Romantic group by Hugo shows a tight cluster. The scores for Hugo’s translations remain stable across different books.</p>
-<p>When we look at the French originals in Figure 4.1.2, the data pattern changes completely. The Kandel-Moles scores for both the Realist and Romantic groups are tightly clustered between 84 and 89. The internal variance for Zola’s texts disappears in the French version. His French texts score almost the same as Hugo’s French texts.</p>
-<p>This direct comparison provides important information about the data. The high variance in the English Realist texts does not exist in the original French texts. Therefore, this variance is not a feature of the original author’s style. The difference was introduced during the translation process. Different English translators used different sentence structures and vocabulary levels. In the original French language, both authors wrote within a similar baseline of textual complexity.</p>
+<p><img src="plots/KMscores.png" class="img-fluid"> <em>Table 4.1.2: KM Readability Scores for the 6 French originals.</em></p>
+<p>The FK scores for the English translations range from 64.63 (l_argent) to 81.91 (le_dernier_jour). The full ranking from lowest to highest is: l_argent (64.63), la_debacle (66.93), son_excellence (67.52), la_curee (68.26), au_bonheur (69.8), le_ventre (70.2), la_joie (70.96), la_fortune (71.34), le_reve (71.91), l_oeuvre (71.95), bug_jargal (72.39), la_bete (72.79), le_docteur (73.0), la_conquete (73.16), notre_dame (73.24), claude_gueux (73.58), la_terre (73.4), quatrevingt_treize (74.88), travailleurs (74.92), miserables (75.06), han_d_islande1 (75.06), han_d_islande2 (75.83), pot_bouille (75.9), germinal (77.12), l_assommoir (77.3), une_page (77.74), homme_qui_rit (78.4), la_faute (79.28), le_dernier_jour (81.91).</p>
+<p>Both Realist and Romantic novels appear throughout the full range of scores. There is no clear separation between the two literary schools. Some Realist novels score very low, such as l_argent at 64.63, while others score high, such as la_faute at 79.28. The same pattern appears for Romantic novels: bug_jargal scores 72.39 while le_dernier_jour scores 81.91.</p>
+<p>The KM scores for the French originals are much more tightly grouped, ranging from 84.73 (germinal_fr) to 89.43 (nana_fr). Both Realist and Romantic novels cluster closely between 84 and 90. There is no clear difference between the two groups in the French data.</p>
+<p>Comparing the two figures reveals an important finding. The wide score range seen in the English translations (64.63 to 81.91) does not appear in the French originals (84.73 to 89.43). This suggests that the variance observed in the English data may be partly caused by differences between translators rather than differences between authors.</p>
 </section>
 <section id="readability-volatility-over-sliding-windows" class="level2">
 <h2 class="anchored" data-anchor-id="readability-volatility-over-sliding-windows">4.2 Readability Volatility over Sliding Windows</h2>
-<p>We used a sliding window approach to analyze the dynamic stability of readability throughout the texts. The window size was set to 2000 tokens. This method calculates the readability score for every 2000 words to show how text complexity changes from the beginning to the end of each novel.</p>
+<p>A sliding window approach was used to track how readability changes throughout each novel. Two window sizes were tested: 500 words and 2000 words.</p>
+<iframe src="plots/sliding_window_ws500.html" width="100%" height="450px" style="border:none;"></iframe>
+<p><em>Figure 4.2.1: Sliding Window Readability 500(English Translations).</em></p>
+<p>With a window size of 500 (Figure 4.2.1), the scores are very unstable. Most novels fluctuate between 0 and 100. Les Misérables shows two extreme negative spikes, dropping to approximately -200 at the 380k and 650k token positions. A window size of 500 is too small for stable readability measurement.</p>
 <iframe src="plots/sliding_window_ws2000.html" width="100%" height="450px" style="border:none;"></iframe>
-<p><em>Figure 4.2.1: Sliding Window Readability (English Translations).</em></p>
+<p><em>Figure 4.2.2: Sliding Window Readability 2000(English Translations).</em></p>
+<p>With a window size of 2000 (Figure 4.2.2), the scores are more stable. Most novels stay between 60 and 90. Notre-Dame shows a sharp drop to approximately 20 near the 100k token position. Les Misérables shows a drop to approximately 35 near the 380k token position. These drops correspond to specific chapters where sentences become very long.</p>
 <iframe src="plots/sliding_window_fr.html" width="100%" height="450px" style="border:none;"></iframe>
-<p><em>Figure 4.2.2: Sliding Window Readability (French Originals).</em></p>
-<p>The English translation data in Figure 4.2.1 shows high local volatility across all texts. The curves do not remain flat. Instead, they move up and down heavily between the scores of 50 and 100. The horizontal x-axis shows the narrative progression. The line for Les Miserables extends much further to the right than any other book, which directly represents its massive total word count. We also see clear local drops in specific books. For example, the line for Notre-Dame shows a sharp downward spike near the 100k token mark. In this specific part of the translation, the score drops below 60.</p>
-<p>The French original data in Figure 4.2.2 displays the exact same volatility pattern. The Kandel-Moles scores for the 6 French books fluctuate constantly as the story progresses. The most important observation is the behavior of Notre-Dame in the French version. The purple line shows two major drops, one near the 50k token mark and another near the 100k token mark. In these two sections, the readability score plunges below 50.</p>
-<p>This direct comparative data provides a clear structural conclusion. The local drops and the constant variance appear in both the English translations and the French originals. The drops occur at equivalent narrative positions in both languages. Therefore, this volatility is not a translation artifact. The data proves that these shifts in complexity are an inherent feature of the original author’s text structure. In these specific chapters, sentence lengths increase and vocabulary becomes denser in both languages.</p>
+<p><em>Figure 4.2.3: Sliding Window Readability (French Originals).</em></p>
+<p>The French originals (Figure 4.2.3) show similar local volatility. Scores fluctuate between 75 and 100 for most books. Notre-Dame_fr shows two clear drops, one near 60k tokens dropping to approximately 48, and another near 100k tokens. The fact that Notre-Dame shows drops at similar narrative positions in both the English and French versions suggests these complexity shifts are a feature of the original text structure, not a translation effect.</p>
 </section>
 <section id="vocabulary-distribution-and-zipfs-law" class="level2">
 <h2 class="anchored" data-anchor-id="vocabulary-distribution-and-zipfs-law">4.3 Vocabulary Distribution and Zipf’s Law</h2>
-<p>We verified the statistical distribution of the vocabulary across both datasets. We counted the frequency of each lemmatized word and ranked them from most frequent to least frequent. Then, we plotted the rank on the x-axis and the frequency on the y-axis using a log-log scale. A black dashed line represents the ideal Zipfian slope of -1.</p>
+<p>Word frequencies were counted for each novel and ranked from most frequent to least frequent. The results were plotted on a log-log scale. A black dashed line represents the ideal Zipf slope of -1.</p>
 <iframe src="plots/zipf.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.3.1: Zipf Distribution (English Translations).</em></p>
+<p>All 29 English novels follow a power-law distribution that runs parallel to the ideal slope line (Figure 4.3.1). The curves are stratified by text length. Les Misérables extends furthest to the right (reaching rank ~10k), reflecting its large vocabulary size. Claude Gueux ends earliest (around rank ~1k), reflecting its short length. No curve deviates significantly from the parallel pattern.</p>
 <iframe src="plots/zipf_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.3.2: Zipf Distribution (French Originals).</em></p>
-<p>The English translation data in Figure 4.3.1 shows a highly consistent power-law distribution. All 29 curves are parallel to each other and closely follow the ideal black dashed line. The data shows a clear vertical and horizontal stratification based on text length. The curves that extend furthest to the right represent the longest novels in the corpus, such as Les Miserables. These curves reach higher ranks near 10k, which shows a larger absolute vocabulary size. Conversely, the curves on the far left represent short stories like Claude Gueux. These plots truncate early around lower ranks near 1k, which directly represents their limited lexical diversity.</p>
-<p>The French original data in Figure 4.3.2 displays the exact same mathematical behavior. All 6 curves for the original French texts are perfectly parallel. They tightly align with the ideal slope of -1, just like the English data. The longer French texts also extend further to the right than the shorter pieces.</p>
-<p>This comparative analysis demonstrates a universal mathematical law in text processing. The rank-frequency distribution of tokens remains completely stable across different languages and different literary schools. Whether we analyze 29 English translations or 6 French originals, and whether the text belongs to Zola or Hugo, the statistical ratio between high-frequency words and low-frequency words does not change. This proves that Zipf’s Law is an invariant property of human language that transcends both translation and author style.</p>
+<p>The 6 French originals (Figure 4.3.2) show the same behavior. All curves are parallel and close together, following the ideal slope closely. The French curves are more tightly grouped than the English ones, with less vertical spread between books. In both datasets, the rank-frequency relationship is consistent across all books regardless of author or literary movement. This confirms that Zipf’s Law holds across both languages and both literary schools in this corpus.</p>
 </section>
-<section id="readability-of-pure-dialogue" class="level2">
-<h2 class="anchored" data-anchor-id="readability-of-pure-dialogue">4.4 Readability of Pure Dialogue</h2>
-<p>We isolated the pure dialogue text from both datasets to calculate its specific readability. We used the Flesch-Kincaid formula for the English translations and the Kandel-Moles formula for the French originals.</p>
+<section id="dialogue-and-narration-analysis" class="level2">
+<h2 class="anchored" data-anchor-id="dialogue-and-narration-analysis">4.4 Dialogue and Narration Analysis</h2>
+<p>Sentences were classified as dialogue or narration using different rules for each language. For the English texts, a sentence was marked as dialogue if it contained a ” or ’ character. For the French texts, a sentence was marked as dialogue if it contained « or », or if it started with — or -.</p>
+<iframe src="plots/dialogue.html" width="100%" height="400px" style="border:none;"></iframe>
+<p><em>Figure 4.4.1:Average Sentence Length — Dialogue vs Narration (English Translations).</em></p>
+<p><img src="plots/Eng_dialogue.png" class="img-fluid"> <em>Table 4.4.1: Average sentence length in English corpus by school and type.</em></p>
+<iframe src="plots/dialogue_fr.html" width="100%" height="400px" style="border:none;"></iframe>
+<p><em>Figure 4.4.2:Average Sentence Length — Dialogue vs Narration (French Originals).</em></p>
+<p><img src="plots/fr_dialogue.png" class="img-fluid"> <em>Table 4.4.2: Average sentence length in French corpus by school and type.</em></p>
+<p>In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. In natural language, dialogue is usually shorter than narration. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase. This noise in the classification inflates the average dialogue sentence length.</p>
+<p>In the French data, the pattern is reversed. Dialogue sentences are shorter than narration sentences. For Realist novels, narration averages 79.85 characters while dialogue averages 21.02 characters. For Romantic novels, narration averages 73.55 characters and dialogue averages 65.55 characters. This result is more consistent with natural language expectations. The French detection rules using «» and — are more precise and less likely to capture narration sentences by mistake.</p>
 <iframe src="plots/dialogue_readability_en.html" width="100%" height="400px" style="border:none;"></iframe>
-<p><em>Figure 4.4.1: Flesch-Kincaid Readability of Pure Dialogue (English Translations).</em></p>
+<p><em>Figure 4.4.3: Flesch-Kincaid Readability of Pure Dialogue (English Translations).</em></p>
 <iframe src="plots/dialogue_readability_fr.html" width="100%" height="400px" style="border:none;"></iframe>
-<p><em>Figure 4.4.2: Readability of Pure Dialogue (French Originals).</em></p>
-<p>The English translation data in Figure 4.4.1 shows that the pure dialogue scores for both schools are almost identical. The Realist score and the Romantic score sit very close between 70 and 71. There is no significant difference between the two groups. This flat result happens because the English dataset contains long narrative text inside the dialogue category. The simple quotation mark rule caused this data pollution. The long narrative sentences pulled the readability scores down and hid the stylistic differences.</p>
-<p>The French original data in Figure 4.4.2 reveals a much clearer distinction. The Realist pure dialogue scores above 100 on the Kandel-Moles index. This very high score means that the characters use short words and simple structures. The Romantic pure dialogue scores lower, around 98. This means Hugo’s characters use longer words and more complex speech.</p>
-<p>Comparing the two figures provides an important conclusion about data quality. The true difference between the literary schools only appears when the data cleaning is precise. In the English pipeline, the weak extraction rule mixed narration into dialogue and flattened the analysis. In the French pipeline, the precise regular expressions removed the noise. The clean data proves that Realist dialogue is much simpler than Romantic dialogue in the original language.</p>
-<div id="e17aad98" class="cell" data-execution_count="1">
+<p><em>Figure 4.4.4: Readability of Pure Dialogue (French Originals).</em></p>
+<p>The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above. The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).</p>
+<div id="8da17f73" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os.path</span>
@@ -338,7 +369,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-149"><a href="#cb1-149" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Saved </span><span class="sc">{</span>clean_path<span class="sc">}</span><span class="ss">  (</span><span class="sc">{</span>size<span class="sc">}</span><span class="ss"> bytes)"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="3a3ac73d" class="cell" data-execution_count="2">
+<div id="eba5bd57" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
@@ -397,7 +428,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All 29 novels processed!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="b044ec15" class="cell" data-execution_count="3">
+<div id="53a9bce5" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
@@ -459,7 +490,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>english_syllable_udf <span class="op">=</span> F.udf(english_syllable_count, IntegerType())</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="db9f8f7b" class="cell" data-execution_count="4">
+<div id="b2cb17cc" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
@@ -508,75 +539,78 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb4-44"><a href="#cb4-44" aria-hidden="true" tabindex="-1"></a>fig_readability.update_xaxes(categoryorder<span class="op">=</span><span class="st">"category ascending"</span>) </span>
 <span id="cb4-45"><a href="#cb4-45" aria-hidden="true" tabindex="-1"></a>fig_readability.write_html(<span class="st">"plots/readability_unified.html"</span>)</span>
 <span id="cb4-46"><a href="#cb4-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="co">#=======dialogue===============================</span></span>
-<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Create sentences_df_en directly from the existing annotated_df</span></span>
-<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a>sentences_extracted <span class="op">=</span> annotated_df.select(</span>
-<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a>    <span class="st">"book"</span>,</span>
-<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a>    F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>)</span>
-<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the school column to the sentences using zola_books list</span></span>
-<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>sentences_extracted <span class="op">=</span> sentences_extracted.withColumn(</span>
-<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a>    <span class="st">"school"</span>,</span>
-<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a>    F.when(F.col(<span class="st">"book"</span>).isin(zola_books), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>)</span>
-<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify dialogue sentences by checking for quotation marks</span></span>
-<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>sentences_df_en <span class="op">=</span> sentences_extracted.withColumn(</span>
-<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dialogue"</span>,</span>
-<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a>    F.col(<span class="st">"sentence"</span>).contains(<span class="st">'"'</span>) <span class="op">|</span> F.col(<span class="st">"sentence"</span>).contains(<span class="st">"'"</span>)</span>
-<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out pure dialogue sentences from the English dataset</span></span>
-<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>dialogue_only_en <span class="op">=</span> sentences_df_en.<span class="bu">filter</span>(F.col(<span class="st">"dialogue"</span>) <span class="op">==</span> <span class="va">True</span>)</span>
+<span id="cb4-47"><a href="#cb4-47" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"=== FK Scores ==="</span>)</span>
+<span id="cb4-48"><a href="#cb4-48" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(pandas_indices.to_string())</span>
+<span id="cb4-49"><a href="#cb4-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-50"><a href="#cb4-50" aria-hidden="true" tabindex="-1"></a><span class="co">#=======dialogue===============================</span></span>
+<span id="cb4-51"><a href="#cb4-51" aria-hidden="true" tabindex="-1"></a><span class="co"># Create sentences_df_en directly from the existing annotated_df</span></span>
+<span id="cb4-52"><a href="#cb4-52" aria-hidden="true" tabindex="-1"></a>sentences_extracted <span class="op">=</span> annotated_df.select(</span>
+<span id="cb4-53"><a href="#cb4-53" aria-hidden="true" tabindex="-1"></a>    <span class="st">"book"</span>,</span>
+<span id="cb4-54"><a href="#cb4-54" aria-hidden="true" tabindex="-1"></a>    F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>)</span>
+<span id="cb4-55"><a href="#cb4-55" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-56"><a href="#cb4-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-57"><a href="#cb4-57" aria-hidden="true" tabindex="-1"></a><span class="co"># Add the school column to the sentences using zola_books list</span></span>
+<span id="cb4-58"><a href="#cb4-58" aria-hidden="true" tabindex="-1"></a>sentences_extracted <span class="op">=</span> sentences_extracted.withColumn(</span>
+<span id="cb4-59"><a href="#cb4-59" aria-hidden="true" tabindex="-1"></a>    <span class="st">"school"</span>,</span>
+<span id="cb4-60"><a href="#cb4-60" aria-hidden="true" tabindex="-1"></a>    F.when(F.col(<span class="st">"book"</span>).isin(zola_books), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>)</span>
+<span id="cb4-61"><a href="#cb4-61" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-62"><a href="#cb4-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-63"><a href="#cb4-63" aria-hidden="true" tabindex="-1"></a><span class="co"># Identify dialogue sentences by checking for quotation marks</span></span>
+<span id="cb4-64"><a href="#cb4-64" aria-hidden="true" tabindex="-1"></a>sentences_df_en <span class="op">=</span> sentences_extracted.withColumn(</span>
+<span id="cb4-65"><a href="#cb4-65" aria-hidden="true" tabindex="-1"></a>    <span class="st">"dialogue"</span>,</span>
+<span id="cb4-66"><a href="#cb4-66" aria-hidden="true" tabindex="-1"></a>    F.col(<span class="st">"sentence"</span>).contains(<span class="st">'"'</span>) <span class="op">|</span> F.col(<span class="st">"sentence"</span>).contains(<span class="st">"'"</span>)</span>
+<span id="cb4-67"><a href="#cb4-67" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-68"><a href="#cb4-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the dialogue sentences into individual words</span></span>
-<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>dialogue_words_en <span class="op">=</span> dialogue_only_en.withColumn(</span>
-<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a>    <span class="st">"word"</span>, F.explode(F.split(F.col(<span class="st">"sentence"</span>), <span class="vs">r"</span><span class="dv">\W</span><span class="op">+</span><span class="vs">"</span>))</span>
-<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a>).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate syllables using your exact function name from the top code</span></span>
-<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>dialogue_words_en <span class="op">=</span> dialogue_words_en.withColumn(<span class="st">"syllables"</span>, english_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
+<span id="cb4-69"><a href="#cb4-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Filter out pure dialogue sentences from the English dataset</span></span>
+<span id="cb4-70"><a href="#cb4-70" aria-hidden="true" tabindex="-1"></a>dialogue_only_en <span class="op">=</span> sentences_df_en.<span class="bu">filter</span>(F.col(<span class="st">"dialogue"</span>) <span class="op">==</span> <span class="va">True</span>)</span>
+<span id="cb4-71"><a href="#cb4-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-72"><a href="#cb4-72" aria-hidden="true" tabindex="-1"></a><span class="co"># Split the dialogue sentences into individual words</span></span>
+<span id="cb4-73"><a href="#cb4-73" aria-hidden="true" tabindex="-1"></a>dialogue_words_en <span class="op">=</span> dialogue_only_en.withColumn(</span>
+<span id="cb4-74"><a href="#cb4-74" aria-hidden="true" tabindex="-1"></a>    <span class="st">"word"</span>, F.explode(F.split(F.col(<span class="st">"sentence"</span>), <span class="vs">r"</span><span class="dv">\W</span><span class="op">+</span><span class="vs">"</span>))</span>
+<span id="cb4-75"><a href="#cb4-75" aria-hidden="true" tabindex="-1"></a>).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
 <span id="cb4-76"><a href="#cb4-76" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a>dialogue_word_stats_en <span class="op">=</span> dialogue_words_en.groupBy(<span class="st">"school"</span>).agg(</span>
-<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>),</span>
-<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>)</span>
-<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>dialogue_sentence_stats_en <span class="op">=</span> dialogue_only_en.groupBy(<span class="st">"school"</span>).agg(</span>
-<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"sentence"</span>).alias(<span class="st">"total_sentences"</span>)</span>
-<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a><span class="co"># Join the metrics and apply the Flesch-Kincaid formula</span></span>
-<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>dialogue_fk <span class="op">=</span> dialogue_word_stats_en.join(dialogue_sentence_stats_en, on<span class="op">=</span><span class="st">"school"</span>)</span>
-<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a>dialogue_fk <span class="op">=</span> dialogue_fk.withColumn(</span>
-<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Dialogue_FK_Score"</span>,</span>
-<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="fl">206.835</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">84.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
-<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the results to a Pandas DataFrame for plotting</span></span>
-<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>dialogue_fk_pd <span class="op">=</span> dialogue_fk.toPandas()</span>
+<span id="cb4-77"><a href="#cb4-77" aria-hidden="true" tabindex="-1"></a><span class="co"># Calculate syllables using your exact function name from the top code</span></span>
+<span id="cb4-78"><a href="#cb4-78" aria-hidden="true" tabindex="-1"></a>dialogue_words_en <span class="op">=</span> dialogue_words_en.withColumn(<span class="st">"syllables"</span>, english_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
+<span id="cb4-79"><a href="#cb4-79" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-80"><a href="#cb4-80" aria-hidden="true" tabindex="-1"></a>dialogue_word_stats_en <span class="op">=</span> dialogue_words_en.groupBy(<span class="st">"school"</span>).agg(</span>
+<span id="cb4-81"><a href="#cb4-81" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>),</span>
+<span id="cb4-82"><a href="#cb4-82" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>)</span>
+<span id="cb4-83"><a href="#cb4-83" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-84"><a href="#cb4-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-85"><a href="#cb4-85" aria-hidden="true" tabindex="-1"></a>dialogue_sentence_stats_en <span class="op">=</span> dialogue_only_en.groupBy(<span class="st">"school"</span>).agg(</span>
+<span id="cb4-86"><a href="#cb4-86" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"sentence"</span>).alias(<span class="st">"total_sentences"</span>)</span>
+<span id="cb4-87"><a href="#cb4-87" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-88"><a href="#cb4-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-89"><a href="#cb4-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Join the metrics and apply the Flesch-Kincaid formula</span></span>
+<span id="cb4-90"><a href="#cb4-90" aria-hidden="true" tabindex="-1"></a>dialogue_fk <span class="op">=</span> dialogue_word_stats_en.join(dialogue_sentence_stats_en, on<span class="op">=</span><span class="st">"school"</span>)</span>
+<span id="cb4-91"><a href="#cb4-91" aria-hidden="true" tabindex="-1"></a>dialogue_fk <span class="op">=</span> dialogue_fk.withColumn(</span>
+<span id="cb4-92"><a href="#cb4-92" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Dialogue_FK_Score"</span>,</span>
+<span id="cb4-93"><a href="#cb4-93" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="fl">206.835</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">84.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
+<span id="cb4-94"><a href="#cb4-94" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb4-95"><a href="#cb4-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the bar chart to compare schools</span></span>
-<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk <span class="op">=</span> px.bar(</span>
-<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a>    dialogue_fk_pd, </span>
-<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">"school"</span>, </span>
-<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">"Dialogue_FK_Score"</span>, </span>
-<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"school"</span>,</span>
-<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Readability of Pure Dialogue (Flesch-Kincaid)"</span>,</span>
-<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>{<span class="st">"Dialogue_FK_Score"</span>: <span class="st">"Flesch-Kincaid Score (Higher = Easier)"</span>},</span>
-<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>    color_discrete_map<span class="op">=</span>{<span class="st">"Realist"</span>: <span class="st">"blue"</span>, <span class="st">"Romantic"</span>: <span class="st">"red"</span>}</span>
-<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk.update_layout(template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
-<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk.write_html(<span class="st">"plots/dialogue_readability_en.html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb4-96"><a href="#cb4-96" aria-hidden="true" tabindex="-1"></a><span class="co"># Convert the results to a Pandas DataFrame for plotting</span></span>
+<span id="cb4-97"><a href="#cb4-97" aria-hidden="true" tabindex="-1"></a>dialogue_fk_pd <span class="op">=</span> dialogue_fk.toPandas()</span>
+<span id="cb4-98"><a href="#cb4-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-99"><a href="#cb4-99" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the bar chart to compare schools</span></span>
+<span id="cb4-100"><a href="#cb4-100" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk <span class="op">=</span> px.bar(</span>
+<span id="cb4-101"><a href="#cb4-101" aria-hidden="true" tabindex="-1"></a>    dialogue_fk_pd, </span>
+<span id="cb4-102"><a href="#cb4-102" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">"school"</span>, </span>
+<span id="cb4-103"><a href="#cb4-103" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">"Dialogue_FK_Score"</span>, </span>
+<span id="cb4-104"><a href="#cb4-104" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"school"</span>,</span>
+<span id="cb4-105"><a href="#cb4-105" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Readability of Pure Dialogue (Flesch-Kincaid)"</span>,</span>
+<span id="cb4-106"><a href="#cb4-106" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>{<span class="st">"Dialogue_FK_Score"</span>: <span class="st">"Flesch-Kincaid Score (Higher = Easier)"</span>},</span>
+<span id="cb4-107"><a href="#cb4-107" aria-hidden="true" tabindex="-1"></a>    color_discrete_map<span class="op">=</span>{<span class="st">"Realist"</span>: <span class="st">"blue"</span>, <span class="st">"Romantic"</span>: <span class="st">"red"</span>}</span>
+<span id="cb4-108"><a href="#cb4-108" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-109"><a href="#cb4-109" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-110"><a href="#cb4-110" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk.update_layout(template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
+<span id="cb4-111"><a href="#cb4-111" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fk.write_html(<span class="st">"plots/dialogue_readability_en.html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="d061a38d" class="cell" data-execution_count="5">
+<div id="136c01f1" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.2 Sliding Window Readability (All Data + Highlight)</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.2 Sliding Window Readability </span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sliding_window_readability(book_name, window_size<span class="op">=</span><span class="dv">500</span>, step<span class="op">=</span><span class="dv">250</span>):</span>
 <span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    tokens_df <span class="op">=</span> annotated_df.<span class="bu">filter</span>(F.col(<span class="st">"book"</span>) <span class="op">==</span> book_name).select(<span class="st">"token"</span>)</span>
@@ -589,70 +623,53 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> start <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(all_words) <span class="op">-</span> window_size <span class="op">+</span> <span class="dv">1</span>, step):</span>
 <span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>        window_words <span class="op">=</span> all_words[start:start<span class="op">+</span>window_size]</span>
 <span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>        sentences <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> w <span class="kw">in</span> window_words <span class="cf">if</span> w.endswith((<span class="st">'.'</span>, <span class="st">'!'</span>, <span class="st">'?'</span>)))</span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> sentences <span class="op">==</span> <span class="dv">0</span>:</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>            <span class="cf">continue</span></span>
-<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        word_count <span class="op">=</span> <span class="bu">len</span>(window_words)</span>
-<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        syllable_count <span class="op">=</span> <span class="bu">sum</span>(english_syllable_count(w) <span class="cf">for</span> w <span class="kw">in</span> window_words)</span>
-<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> <span class="fl">206.835</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (word_count <span class="op">/</span> sentences) <span class="op">-</span> <span class="fl">84.6</span> <span class="op">*</span> (syllable_count <span class="op">/</span> word_count)</span>
-<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>        results.append({<span class="st">"position"</span>: start, <span class="st">"Score"</span>: score})</span>
-<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(results)</span>
-<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>highlight_books <span class="op">=</span> {</span>
-<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"miserables"</span>: <span class="st">"blue"</span>,    <span class="co"># Romantic</span></span>
-<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame"</span>: <span class="st">"cyan"</span>,    <span class="co"># Romantic</span></span>
-<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal"</span>: <span class="st">"red"</span>,       <span class="co"># Realist </span></span>
-<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"l_assommoir"</span>: <span class="st">"orange"</span>  <span class="co"># Realist </span></span>
-<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>window_sizes <span class="op">=</span> [<span class="dv">500</span>, <span class="dv">2000</span>]</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> sentences <span class="op">==</span> <span class="dv">0</span>: <span class="cf">continue</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>        word_count <span class="op">=</span> <span class="bu">len</span>(window_words)</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>        syllable_count <span class="op">=</span> <span class="bu">sum</span>(english_syllable_count(w) <span class="cf">for</span> w <span class="kw">in</span> window_words)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> <span class="fl">206.835</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (word_count <span class="op">/</span> sentences) <span class="op">-</span> <span class="fl">84.6</span> <span class="op">*</span> (syllable_count <span class="op">/</span> word_count)</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>        results.append({<span class="st">"position"</span>: start, <span class="st">"Score"</span>: score})</span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(results)</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>highlight_books <span class="op">=</span> {</span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"miserables"</span>: <span class="st">"blue"</span>,    </span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame"</span>: <span class="st">"cyan"</span>,    </span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal"</span>: <span class="st">"red"</span>,       </span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"l_assommoir"</span>: <span class="st">"orange"</span>  </span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>window_sizes <span class="op">=</span> [<span class="dv">500</span>, <span class="dv">2000</span>]</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a>all_book_names <span class="op">=</span> annotated_df.select(<span class="st">"book"</span>).distinct().toPandas()[<span class="st">"book"</span>].tolist()</span>
 <span id="cb5-34"><a href="#cb5-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ws <span class="kw">in</span> window_sizes:</span>
-<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a>    fig_sliding <span class="op">=</span> go.Figure()</span>
-<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-35"><a href="#cb5-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-36"><a href="#cb5-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> ws <span class="kw">in</span> window_sizes:</span>
+<span id="cb5-37"><a href="#cb5-37" aria-hidden="true" tabindex="-1"></a>    fig_sliding <span class="op">=</span> go.Figure()</span>
 <span id="cb5-38"><a href="#cb5-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> book <span class="kw">in</span> all_book_names:</span>
 <span id="cb5-39"><a href="#cb5-39" aria-hidden="true" tabindex="-1"></a>        df_slide <span class="op">=</span> sliding_window_readability(book, window_size<span class="op">=</span>ws, step<span class="op">=</span>ws<span class="op">//</span><span class="dv">2</span>)</span>
-<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>        </span>
-<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> df_slide.empty: <span class="cf">continue</span></span>
-<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> book <span class="kw">in</span> highlight_books:</span>
-<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>            line_color <span class="op">=</span> highlight_books[book]</span>
-<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>            line_width <span class="op">=</span> <span class="fl">2.5</span></span>
-<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>            opacity <span class="op">=</span> <span class="fl">1.0</span></span>
-<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>            showlegend <span class="op">=</span> <span class="va">True</span></span>
-<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>            line_color <span class="op">=</span> <span class="st">"lightgrey"</span></span>
-<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>            line_width <span class="op">=</span> <span class="dv">1</span></span>
-<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>            opacity <span class="op">=</span> <span class="fl">0.4</span></span>
-<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a>            showlegend <span class="op">=</span> <span class="va">False</span> </span>
-<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>            </span>
-<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>        fig_sliding.add_trace(go.Scatter(</span>
-<span id="cb5-55"><a href="#cb5-55" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span>df_slide[<span class="st">"position"</span>], </span>
-<span id="cb5-56"><a href="#cb5-56" aria-hidden="true" tabindex="-1"></a>            y<span class="op">=</span>df_slide[<span class="st">"Score"</span>],</span>
-<span id="cb5-57"><a href="#cb5-57" aria-hidden="true" tabindex="-1"></a>            mode<span class="op">=</span><span class="st">"lines"</span>, </span>
-<span id="cb5-58"><a href="#cb5-58" aria-hidden="true" tabindex="-1"></a>            name<span class="op">=</span>book <span class="cf">if</span> showlegend <span class="cf">else</span> <span class="st">""</span>,</span>
-<span id="cb5-59"><a href="#cb5-59" aria-hidden="true" tabindex="-1"></a>            line<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>line_color, width<span class="op">=</span>line_width),</span>
-<span id="cb5-60"><a href="#cb5-60" aria-hidden="true" tabindex="-1"></a>            opacity<span class="op">=</span>opacity,</span>
-<span id="cb5-61"><a href="#cb5-61" aria-hidden="true" tabindex="-1"></a>            showlegend<span class="op">=</span>showlegend,</span>
-<span id="cb5-62"><a href="#cb5-62" aria-hidden="true" tabindex="-1"></a>            hoverinfo<span class="op">=</span><span class="st">"name+y"</span></span>
-<span id="cb5-63"><a href="#cb5-63" aria-hidden="true" tabindex="-1"></a>        ))</span>
-<span id="cb5-64"><a href="#cb5-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-65"><a href="#cb5-65" aria-hidden="true" tabindex="-1"></a>    fig_sliding.update_layout(</span>
-<span id="cb5-66"><a href="#cb5-66" aria-hidden="true" tabindex="-1"></a>        title<span class="op">=</span><span class="ss">f"Sliding Window Flesch-Kincaid Readability (Window Size = </span><span class="sc">{</span>ws<span class="sc">}</span><span class="ss">)"</span>,</span>
-<span id="cb5-67"><a href="#cb5-67" aria-hidden="true" tabindex="-1"></a>        xaxis_title<span class="op">=</span><span class="st">"Token Position"</span>, </span>
-<span id="cb5-68"><a href="#cb5-68" aria-hidden="true" tabindex="-1"></a>        yaxis_title<span class="op">=</span><span class="st">"FK Score"</span>,</span>
-<span id="cb5-69"><a href="#cb5-69" aria-hidden="true" tabindex="-1"></a>        template<span class="op">=</span><span class="st">"plotly_white"</span></span>
-<span id="cb5-70"><a href="#cb5-70" aria-hidden="true" tabindex="-1"></a>    )</span>
-<span id="cb5-71"><a href="#cb5-71" aria-hidden="true" tabindex="-1"></a>    fig_sliding.write_html(<span class="ss">f"plots/sliding_window_ws</span><span class="sc">{</span>ws<span class="sc">}</span><span class="ss">.html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb5-40"><a href="#cb5-40" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> df_slide.empty: <span class="cf">continue</span></span>
+<span id="cb5-41"><a href="#cb5-41" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb5-42"><a href="#cb5-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> book <span class="kw">in</span> highlight_books:</span>
+<span id="cb5-43"><a href="#cb5-43" aria-hidden="true" tabindex="-1"></a>            line_color, line_width, opacity, showlegend <span class="op">=</span> highlight_books[book], <span class="fl">2.5</span>, <span class="fl">1.0</span>, <span class="va">True</span></span>
+<span id="cb5-44"><a href="#cb5-44" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb5-45"><a href="#cb5-45" aria-hidden="true" tabindex="-1"></a>            line_color, line_width, opacity, showlegend <span class="op">=</span> <span class="st">"lightgrey"</span>, <span class="dv">1</span>, <span class="fl">0.4</span>, <span class="va">False</span> </span>
+<span id="cb5-46"><a href="#cb5-46" aria-hidden="true" tabindex="-1"></a>            </span>
+<span id="cb5-47"><a href="#cb5-47" aria-hidden="true" tabindex="-1"></a>        fig_sliding.add_trace(go.Scatter(</span>
+<span id="cb5-48"><a href="#cb5-48" aria-hidden="true" tabindex="-1"></a>            x<span class="op">=</span>df_slide[<span class="st">"position"</span>], y<span class="op">=</span>df_slide[<span class="st">"Score"</span>], mode<span class="op">=</span><span class="st">"lines"</span>, </span>
+<span id="cb5-49"><a href="#cb5-49" aria-hidden="true" tabindex="-1"></a>            name<span class="op">=</span>book <span class="cf">if</span> showlegend <span class="cf">else</span> <span class="st">""</span>, line<span class="op">=</span><span class="bu">dict</span>(color<span class="op">=</span>line_color, width<span class="op">=</span>line_width),</span>
+<span id="cb5-50"><a href="#cb5-50" aria-hidden="true" tabindex="-1"></a>            opacity<span class="op">=</span>opacity, showlegend<span class="op">=</span>showlegend, hoverinfo<span class="op">=</span><span class="st">"name+y"</span></span>
+<span id="cb5-51"><a href="#cb5-51" aria-hidden="true" tabindex="-1"></a>        ))</span>
+<span id="cb5-52"><a href="#cb5-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-53"><a href="#cb5-53" aria-hidden="true" tabindex="-1"></a>    fig_sliding.update_layout(title<span class="op">=</span><span class="ss">f"Sliding Window Flesch-Kincaid (Window = </span><span class="sc">{</span>ws<span class="sc">}</span><span class="ss">)"</span>, template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
+<span id="cb5-54"><a href="#cb5-54" aria-hidden="true" tabindex="-1"></a>    fig_sliding.write_html(<span class="ss">f"plots/sliding_window_ws</span><span class="sc">{</span>ws<span class="sc">}</span><span class="ss">.html"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="8e5c31bb" class="cell" data-execution_count="6">
+<div id="734ed30d" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.3 Zipf Distribution per Document (Robust Version)</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.3 Zipf Distribution per Document </span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyspark.sql <span class="im">import</span> Window, functions <span class="im">as</span> F</span>
 <span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px</span>
@@ -701,297 +718,303 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a>        fig_zipf.write_html(<span class="st">"plots/zipf.html"</span>)</span>
 <span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">" plots/zipf.html"</span>)</span>
 <span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Warning: Empty Zipf data, plot not generated."</span>)</span>
-<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.4 Dialogue vs. Narration Segmentation</span></span>
-<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
-<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> is_dialogue(sentence_text):</span>
-<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> sentence_text <span class="kw">is</span> <span class="va">None</span>: <span class="cf">return</span> <span class="va">False</span></span>
-<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heuristic check for dialogue based on quotation marks</span></span>
-<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="st">'"'</span> <span class="kw">in</span> sentence_text) <span class="kw">or</span> (<span class="st">"''"</span> <span class="kw">in</span> sentence_text)</span>
-<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>is_dialogue_udf <span class="op">=</span> F.udf(is_dialogue, BooleanType())</span>
-<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> annotated_df.select(</span>
-<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>    <span class="st">"book"</span>,</span>
-<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>    F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>)</span>
-<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(<span class="st">"dialogue"</span>, is_dialogue_udf(F.col(<span class="st">"sentence"</span>)))</span>
-<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(<span class="st">"length"</span>, F.length(F.col(<span class="st">"sentence"</span>)))</span>
-<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(</span>
-<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>    <span class="st">"school"</span>,</span>
-<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>    F.when(F.col(<span class="st">"book"</span>).isin(zola_books), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>)</span>
-<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> sentences_df.groupBy(<span class="st">"school"</span>, <span class="st">"dialogue"</span>).agg(</span>
-<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>    F.avg(<span class="st">"length"</span>).alias(<span class="st">"avg_length"</span>),</span>
-<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"*"</span>).alias(<span class="st">"sentence_count"</span>)</span>
-<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a>).toPandas()</span>
-<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>summary[<span class="st">"category"</span>] <span class="op">=</span> summary[<span class="st">"dialogue"</span>].<span class="bu">map</span>({<span class="va">True</span>: <span class="st">"Dialogue"</span>, <span class="va">False</span>: <span class="st">"Narration"</span>})</span>
-<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a>fig_dialogue <span class="op">=</span> px.bar(summary, x<span class="op">=</span><span class="st">"school"</span>, y<span class="op">=</span><span class="st">"avg_length"</span>, color<span class="op">=</span><span class="st">"category"</span>, barmode<span class="op">=</span><span class="st">"group"</span>,</span>
-<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a>                      title<span class="op">=</span><span class="st">"Average Sentence Length: Dialogue vs. Narration by Literary School"</span>,</span>
-<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a>                      labels<span class="op">=</span>{<span class="st">"avg_length"</span>: <span class="st">"Avg Characters per Sentence"</span>, <span class="st">"school"</span>: <span class="st">"Literary Movement"</span>})</span>
-<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a>fig_dialogue.write_html(<span class="st">"plots/dialogue.html"</span>)</span>
-<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All stylometric analyses complete!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="st">"Warning: Empty Zipf data, plot not generated."</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
-<div id="bb66080c" class="cell" data-execution_count="7">
+<div id="ace87ff2" class="cell" data-execution_count="7">
 <details class="code-fold">
 <summary>Code</summary>
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sparknlp</span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sparknlp.pretrained <span class="im">import</span> PretrainedPipeline</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyspark.sql <span class="im">import</span> SparkSession, functions <span class="im">as</span> F, Window</span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyspark.sql.types <span class="im">import</span> IntegerType, BooleanType</span>
-<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px</span>
-<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
-<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
-<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="co"># French Data Definition &amp; Download</span></span>
-<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>books_fr <span class="op">=</span> {</span>
-<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"assommoir_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/6497/pg6497.txt"</span>,</span>
-<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/5711/pg5711.txt"</span>,</span>
-<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nana_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/5250/pg5250.txt"</span>,</span>
-<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/19657/pg19657.txt"</span>,</span>
-<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"homme_qui_rit_fr"</span>: <span class="st">"https://www.gutenberg.org/ebooks/5423.txt.utf-8"</span>,</span>
-<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"quatreving-treize_fr"</span>: <span class="st">"https://www.gutenberg.org/ebooks/9645.txt.utf-8"</span></span>
-<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>delimiters_fr <span class="op">=</span> {</span>
-<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"assommoir_fr"</span>: (<span class="st">"Gervaise avait attendu"</span>, <span class="st">"Fais dodo, ma belle!"</span>),</span>
-<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal_fr"</span>: (<span class="st">"Dans la plaine rase"</span>, <span class="st">"éclater la terre."</span>),</span>
-<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nana_fr"</span>: (<span class="st">"A neuf heures"</span>, <span class="st">"à Berlin!  à Berlin!"</span>),</span>
-<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame_fr"</span>: (<span class="st">"Il y a aujourd'hui trois cent"</span>, <span class="st">"il tomba en poussière."</span>),</span>
-<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"homme_qui_rit_fr"</span>: (<span class="st">"Ursus et Homo étaient"</span>, <span class="st">"la mer."</span>),</span>
-<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"quatreving-treize_fr"</span>: (<span class="st">"Dans les derniers jours de mai"</span>, <span class="st">"la lumière de l'autre."</span>)</span>
-<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>zola_books_fr <span class="op">=</span> [<span class="st">"assommoir_fr"</span>, <span class="st">"germinal_fr"</span>, <span class="st">"nana_fr"</span>]</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co"># A.4.4 Dialogue vs. Narration Segmentation</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># ============================================================</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> is_dialogue(sentence_text):</span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> sentence_text <span class="kw">is</span> <span class="va">None</span>: <span class="cf">return</span> <span class="va">False</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heuristic check for dialogue based on quotation marks</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="st">'"'</span> <span class="kw">in</span> sentence_text) <span class="kw">or</span> (<span class="st">"''"</span> <span class="kw">in</span> sentence_text)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>is_dialogue_udf <span class="op">=</span> F.udf(is_dialogue, BooleanType())</span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> annotated_df.select(</span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    <span class="st">"book"</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>)</span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(<span class="st">"dialogue"</span>, is_dialogue_udf(F.col(<span class="st">"sentence"</span>)))</span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(<span class="st">"length"</span>, F.length(F.col(<span class="st">"sentence"</span>)))</span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>sentences_df <span class="op">=</span> sentences_df.withColumn(</span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"school"</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    F.when(F.col(<span class="st">"book"</span>).isin(zola_books), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>)</span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>summary <span class="op">=</span> sentences_df.groupBy(<span class="st">"school"</span>, <span class="st">"dialogue"</span>).agg(</span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    F.avg(<span class="st">"length"</span>).alias(<span class="st">"avg_length"</span>),</span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"*"</span>).alias(<span class="st">"sentence_count"</span>)</span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>).toPandas()</span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a>summary[<span class="st">"category"</span>] <span class="op">=</span> summary[<span class="st">"dialogue"</span>].<span class="bu">map</span>({<span class="va">True</span>: <span class="st">"Dialogue"</span>, <span class="va">False</span>: <span class="st">"Narration"</span>})</span>
+<span id="cb7-29"><a href="#cb7-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-30"><a href="#cb7-30" aria-hidden="true" tabindex="-1"></a>fig_dialogue <span class="op">=</span> px.bar(summary, x<span class="op">=</span><span class="st">"school"</span>, y<span class="op">=</span><span class="st">"avg_length"</span>, color<span class="op">=</span><span class="st">"category"</span>, barmode<span class="op">=</span><span class="st">"group"</span>,</span>
+<span id="cb7-31"><a href="#cb7-31" aria-hidden="true" tabindex="-1"></a>                      title<span class="op">=</span><span class="st">"Average Sentence Length: Dialogue vs. Narration by Literary School"</span>,</span>
+<span id="cb7-32"><a href="#cb7-32" aria-hidden="true" tabindex="-1"></a>                      labels<span class="op">=</span>{<span class="st">"avg_length"</span>: <span class="st">"Avg Characters per Sentence"</span>, <span class="st">"school"</span>: <span class="st">"Literary Movement"</span>})</span>
+<span id="cb7-33"><a href="#cb7-33" aria-hidden="true" tabindex="-1"></a>fig_dialogue.write_html(<span class="st">"plots/dialogue.html"</span>)</span>
 <span id="cb7-34"><a href="#cb7-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a>os.makedirs(<span class="st">"book_data_fr"</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a>downloaded_fr <span class="op">=</span> {}</span>
+<span id="cb7-35"><a href="#cb7-35" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"=== English Dialogue vs Narration ==="</span>)</span>
+<span id="cb7-36"><a href="#cb7-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(summary.to_string())</span>
 <span id="cb7-37"><a href="#cb7-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book_title, url <span class="kw">in</span> books_fr.items():</span>
-<span id="cb7-39"><a href="#cb7-39" aria-hidden="true" tabindex="-1"></a>    clean_path <span class="op">=</span> os.path.join(<span class="st">"book_data_fr"</span>, book_title <span class="op">+</span> <span class="st">".txt"</span>)</span>
-<span id="cb7-40"><a href="#cb7-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(clean_path):</span>
-<span id="cb7-41"><a href="#cb7-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
-<span id="cb7-42"><a href="#cb7-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-43"><a href="#cb7-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> url <span class="kw">not</span> <span class="kw">in</span> downloaded_fr:</span>
-<span id="cb7-44"><a href="#cb7-44" aria-hidden="true" tabindex="-1"></a>        raw_filename <span class="op">=</span> url.split(<span class="st">"/"</span>)[<span class="op">-</span><span class="dv">1</span>]</span>
-<span id="cb7-45"><a href="#cb7-45" aria-hidden="true" tabindex="-1"></a>        raw_path <span class="op">=</span> os.path.join(<span class="st">"book_data_fr"</span>, raw_filename)</span>
-<span id="cb7-46"><a href="#cb7-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> os.path.exists(raw_path):</span>
-<span id="cb7-47"><a href="#cb7-47" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.get(url)</span>
-<span id="cb7-48"><a href="#cb7-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(raw_path, <span class="st">"w"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
-<span id="cb7-49"><a href="#cb7-49" aria-hidden="true" tabindex="-1"></a>                f.write(r.text)</span>
-<span id="cb7-50"><a href="#cb7-50" aria-hidden="true" tabindex="-1"></a>        downloaded_fr[url] <span class="op">=</span> raw_path</span>
-<span id="cb7-51"><a href="#cb7-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb7-52"><a href="#cb7-52" aria-hidden="true" tabindex="-1"></a>        raw_path <span class="op">=</span> downloaded_fr[url]</span>
-<span id="cb7-53"><a href="#cb7-53" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-54"><a href="#cb7-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(raw_path, <span class="st">"r"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
-<span id="cb7-55"><a href="#cb7-55" aria-hidden="true" tabindex="-1"></a>        full_text <span class="op">=</span> f.read()</span>
-<span id="cb7-56"><a href="#cb7-56" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-57"><a href="#cb7-57" aria-hidden="true" tabindex="-1"></a>    start_token, end_token <span class="op">=</span> delimiters_fr[book_title]</span>
-<span id="cb7-58"><a href="#cb7-58" aria-hidden="true" tabindex="-1"></a>    start_idx <span class="op">=</span> full_text.find(start_token)</span>
-<span id="cb7-59"><a href="#cb7-59" aria-hidden="true" tabindex="-1"></a>    end_idx <span class="op">=</span> full_text.rfind(end_token) <span class="op">+</span> <span class="bu">len</span>(end_token)</span>
-<span id="cb7-60"><a href="#cb7-60" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-61"><a href="#cb7-61" aria-hidden="true" tabindex="-1"></a>    extracted <span class="op">=</span> full_text[start_idx:end_idx] <span class="cf">if</span> start_idx <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span> <span class="cf">else</span> full_text</span>
-<span id="cb7-62"><a href="#cb7-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(clean_path, <span class="st">"w"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
-<span id="cb7-63"><a href="#cb7-63" aria-hidden="true" tabindex="-1"></a>        f.write(extracted)</span>
-<span id="cb7-64"><a href="#cb7-64" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-65"><a href="#cb7-65" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-66"><a href="#cb7-66" aria-hidden="true" tabindex="-1"></a><span class="co"># French Annotation</span></span>
-<span id="cb7-67"><a href="#cb7-67" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-68"><a href="#cb7-68" aria-hidden="true" tabindex="-1"></a>existing <span class="op">=</span> SparkSession.getActiveSession()</span>
-<span id="cb7-69"><a href="#cb7-69" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> existing: existing.stop()</span>
-<span id="cb7-70"><a href="#cb7-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-71"><a href="#cb7-71" aria-hidden="true" tabindex="-1"></a>spark <span class="op">=</span> sparknlp.start(memory<span class="op">=</span><span class="st">"1g"</span>)</span>
-<span id="cb7-72"><a href="#cb7-72" aria-hidden="true" tabindex="-1"></a>spark.conf.<span class="bu">set</span>(<span class="st">"spark.sql.shuffle.partitions"</span>, <span class="st">"4"</span>)</span>
-<span id="cb7-73"><a href="#cb7-73" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> PretrainedPipeline(<span class="st">"explain_document_ml"</span>) <span class="co"># ml pipeline supports French</span></span>
-<span id="cb7-74"><a href="#cb7-74" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-75"><a href="#cb7-75" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> split_text(text, chunk_size<span class="op">=</span><span class="dv">3000</span>):</span>
-<span id="cb7-76"><a href="#cb7-76" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> text.split()</span>
-<span id="cb7-77"><a href="#cb7-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [<span class="st">" "</span>.join(words[i:i<span class="op">+</span>chunk_size]) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(words), chunk_size)]</span>
-<span id="cb7-78"><a href="#cb7-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-79"><a href="#cb7-79" aria-hidden="true" tabindex="-1"></a>os.makedirs(<span class="st">"results_fr"</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb7-80"><a href="#cb7-80" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-81"><a href="#cb7-81" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book_title <span class="kw">in</span> books_fr:</span>
-<span id="cb7-82"><a href="#cb7-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(<span class="ss">f"results_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">"</span>): <span class="cf">continue</span></span>
-<span id="cb7-83"><a href="#cb7-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"book_data_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">.txt"</span>, <span class="st">"r"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
-<span id="cb7-84"><a href="#cb7-84" aria-hidden="true" tabindex="-1"></a>        chunks <span class="op">=</span> split_text(f.read())</span>
-<span id="cb7-85"><a href="#cb7-85" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> spark.createDataFrame([[c] <span class="cf">for</span> c <span class="kw">in</span> chunks]).toDF(<span class="st">"text"</span>)</span>
-<span id="cb7-86"><a href="#cb7-86" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> pipeline.transform(df)</span>
-<span id="cb7-87"><a href="#cb7-87" aria-hidden="true" tabindex="-1"></a>    res.write.mode(<span class="st">"overwrite"</span>).parquet(<span class="ss">f"results_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb7-88"><a href="#cb7-88" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-89"><a href="#cb7-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Load all French annotated data</span></span>
-<span id="cb7-90"><a href="#cb7-90" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_fr_corpus():</span>
-<span id="cb7-91"><a href="#cb7-91" aria-hidden="true" tabindex="-1"></a>    first <span class="op">=</span> <span class="va">True</span></span>
-<span id="cb7-92"><a href="#cb7-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> folder <span class="kw">in</span> os.listdir(<span class="st">"results_fr"</span>):</span>
-<span id="cb7-93"><a href="#cb7-93" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(<span class="st">"results_fr"</span>, folder)</span>
-<span id="cb7-94"><a href="#cb7-94" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> os.path.isdir(path): <span class="cf">continue</span></span>
-<span id="cb7-95"><a href="#cb7-95" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> spark.read.parquet(path).withColumn(<span class="st">"book"</span>, F.lit(folder))</span>
-<span id="cb7-96"><a href="#cb7-96" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> first:</span>
-<span id="cb7-97"><a href="#cb7-97" aria-hidden="true" tabindex="-1"></a>            all_df <span class="op">=</span> df</span>
-<span id="cb7-98"><a href="#cb7-98" aria-hidden="true" tabindex="-1"></a>            first <span class="op">=</span> <span class="va">False</span></span>
-<span id="cb7-99"><a href="#cb7-99" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb7-100"><a href="#cb7-100" aria-hidden="true" tabindex="-1"></a>            all_df <span class="op">=</span> all_df.unionByName(df)</span>
-<span id="cb7-101"><a href="#cb7-101" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> all_df</span>
-<span id="cb7-102"><a href="#cb7-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-103"><a href="#cb7-103" aria-hidden="true" tabindex="-1"></a>df_fr <span class="op">=</span> load_fr_corpus()</span>
-<span id="cb7-104"><a href="#cb7-104" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-105"><a href="#cb7-105" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-106"><a href="#cb7-106" aria-hidden="true" tabindex="-1"></a><span class="co">#  Kandel-Moles Readability</span></span>
-<span id="cb7-107"><a href="#cb7-107" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-108"><a href="#cb7-108" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> french_syllable_count(word):</span>
-<span id="cb7-109"><a href="#cb7-109" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word.lower()</span>
-<span id="cb7-110"><a href="#cb7-110" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(word) <span class="op">&lt;=</span> <span class="dv">3</span>: <span class="cf">return</span> <span class="dv">1</span></span>
-<span id="cb7-111"><a href="#cb7-111" aria-hidden="true" tabindex="-1"></a>    <span class="co">#  e, es, ent</span></span>
-<span id="cb7-112"><a href="#cb7-112" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> re.sub(<span class="vs">r'es</span><span class="op">?</span><span class="dv">$</span><span class="vs">'</span>, <span class="st">''</span>, word)</span>
-<span id="cb7-113"><a href="#cb7-113" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> re.sub(<span class="vs">r'ent</span><span class="dv">$</span><span class="vs">'</span>, <span class="st">''</span>, word)</span>
-<span id="cb7-114"><a href="#cb7-114" aria-hidden="true" tabindex="-1"></a>    matches <span class="op">=</span> re.findall(<span class="vs">r'</span><span class="pp">[aeiouyéàèùâêîôûëïüÿœæ]</span><span class="op">+</span><span class="vs">'</span>, word)</span>
-<span id="cb7-115"><a href="#cb7-115" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">max</span>(<span class="dv">1</span>, <span class="bu">len</span>(matches))</span>
-<span id="cb7-116"><a href="#cb7-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-117"><a href="#cb7-117" aria-hidden="true" tabindex="-1"></a>fr_syllable_udf <span class="op">=</span> F.udf(french_syllable_count, IntegerType())</span>
-<span id="cb7-118"><a href="#cb7-118" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-119"><a href="#cb7-119" aria-hidden="true" tabindex="-1"></a>chunk_stats_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.size(<span class="st">"sentence"</span>).alias(<span class="st">"num_sentences"</span>), <span class="st">"token.result"</span>).withColumnRenamed(<span class="st">"result"</span>, <span class="st">"tokens"</span>)</span>
-<span id="cb7-120"><a href="#cb7-120" aria-hidden="true" tabindex="-1"></a>chunk_stats_fr <span class="op">=</span> chunk_stats_fr.withColumn(<span class="st">"school"</span>, F.when(F.col(<span class="st">"book"</span>).isin(zola_books_fr), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>))</span>
-<span id="cb7-121"><a href="#cb7-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-122"><a href="#cb7-122" aria-hidden="true" tabindex="-1"></a>sentences_fr <span class="op">=</span> chunk_stats_fr.groupBy(<span class="st">"book"</span>, <span class="st">"school"</span>).agg(F.<span class="bu">sum</span>(<span class="st">"num_sentences"</span>).alias(<span class="st">"total_sentences"</span>))</span>
-<span id="cb7-123"><a href="#cb7-123" aria-hidden="true" tabindex="-1"></a>tokens_fr <span class="op">=</span> chunk_stats_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"tokens"</span>).alias(<span class="st">"word"</span>)).withColumn(<span class="st">"syllables"</span>, fr_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
-<span id="cb7-124"><a href="#cb7-124" aria-hidden="true" tabindex="-1"></a>words_fr <span class="op">=</span> tokens_fr.groupBy(<span class="st">"book"</span>).agg(F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>), F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>))</span>
-<span id="cb7-125"><a href="#cb7-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-126"><a href="#cb7-126" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-127"><a href="#cb7-127" aria-hidden="true" tabindex="-1"></a>book_agg_fr <span class="op">=</span> sentences_fr.join(words_fr, on<span class="op">=</span><span class="st">"book"</span>)</span>
-<span id="cb7-128"><a href="#cb7-128" aria-hidden="true" tabindex="-1"></a>book_indices_fr <span class="op">=</span> book_agg_fr.withColumn(</span>
-<span id="cb7-129"><a href="#cb7-129" aria-hidden="true" tabindex="-1"></a>    <span class="st">"KM_Score"</span>,</span>
-<span id="cb7-130"><a href="#cb7-130" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
-<span id="cb7-131"><a href="#cb7-131" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-132"><a href="#cb7-132" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-133"><a href="#cb7-133" aria-hidden="true" tabindex="-1"></a>fig_km <span class="op">=</span> px.bar(book_indices_fr.toPandas(), x<span class="op">=</span><span class="st">"book"</span>, y<span class="op">=</span><span class="st">"KM_Score"</span>, color<span class="op">=</span><span class="st">"school"</span>,</span>
-<span id="cb7-134"><a href="#cb7-134" aria-hidden="true" tabindex="-1"></a>                title<span class="op">=</span><span class="st">"Kandel-Moles Readability Indices (Original French Texts)"</span>,</span>
-<span id="cb7-135"><a href="#cb7-135" aria-hidden="true" tabindex="-1"></a>                labels<span class="op">=</span>{<span class="st">"KM_Score"</span>: <span class="st">"Kandel-Moles Score"</span>})</span>
-<span id="cb7-136"><a href="#cb7-136" aria-hidden="true" tabindex="-1"></a>fig_km.write_html(<span class="st">"plots/kandel_moles_fr.html"</span>)</span>
-<span id="cb7-137"><a href="#cb7-137" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-138"><a href="#cb7-138" aria-hidden="true" tabindex="-1"></a><span class="co">#Kandel-Moles for Dialogues Only</span></span>
-<span id="cb7-139"><a href="#cb7-139" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-140"><a href="#cb7-140" aria-hidden="true" tabindex="-1"></a>dialogue_only_fr <span class="op">=</span> sentences_df_fr.<span class="bu">filter</span>(F.col(<span class="st">"dialogue"</span>) <span class="op">==</span> <span class="va">True</span>)</span>
-<span id="cb7-141"><a href="#cb7-141" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-142"><a href="#cb7-142" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-143"><a href="#cb7-143" aria-hidden="true" tabindex="-1"></a>dialogue_words_fr <span class="op">=</span> dialogue_only_fr.withColumn(</span>
-<span id="cb7-144"><a href="#cb7-144" aria-hidden="true" tabindex="-1"></a>    <span class="st">"word"</span>, F.explode(F.split(F.col(<span class="st">"sentence"</span>), <span class="vs">r"</span><span class="dv">\W</span><span class="op">+</span><span class="vs">"</span>))</span>
-<span id="cb7-145"><a href="#cb7-145" aria-hidden="true" tabindex="-1"></a>).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
-<span id="cb7-146"><a href="#cb7-146" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-147"><a href="#cb7-147" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-148"><a href="#cb7-148" aria-hidden="true" tabindex="-1"></a>dialogue_words_fr <span class="op">=</span> dialogue_words_fr.withColumn(<span class="st">"syllables"</span>, fr_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
-<span id="cb7-149"><a href="#cb7-149" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-150"><a href="#cb7-150" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-151"><a href="#cb7-151" aria-hidden="true" tabindex="-1"></a>dialogue_word_stats <span class="op">=</span> dialogue_words_fr.groupBy(<span class="st">"school"</span>).agg(</span>
-<span id="cb7-152"><a href="#cb7-152" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>),</span>
-<span id="cb7-153"><a href="#cb7-153" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>)</span>
-<span id="cb7-154"><a href="#cb7-154" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-155"><a href="#cb7-155" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-156"><a href="#cb7-156" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-157"><a href="#cb7-157" aria-hidden="true" tabindex="-1"></a>dialogue_sentence_stats <span class="op">=</span> dialogue_only_fr.groupBy(<span class="st">"school"</span>).agg(</span>
-<span id="cb7-158"><a href="#cb7-158" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"sentence"</span>).alias(<span class="st">"total_sentences"</span>)</span>
-<span id="cb7-159"><a href="#cb7-159" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-160"><a href="#cb7-160" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-161"><a href="#cb7-161" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-162"><a href="#cb7-162" aria-hidden="true" tabindex="-1"></a>dialogue_km <span class="op">=</span> dialogue_word_stats.join(dialogue_sentence_stats, on<span class="op">=</span><span class="st">"school"</span>)</span>
-<span id="cb7-163"><a href="#cb7-163" aria-hidden="true" tabindex="-1"></a>dialogue_km <span class="op">=</span> dialogue_km.withColumn(</span>
-<span id="cb7-164"><a href="#cb7-164" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Dialogue_KM_Score"</span>,</span>
-<span id="cb7-165"><a href="#cb7-165" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
-<span id="cb7-166"><a href="#cb7-166" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-167"><a href="#cb7-167" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-168"><a href="#cb7-168" aria-hidden="true" tabindex="-1"></a>dialogue_km_pd <span class="op">=</span> dialogue_km.toPandas()</span>
-<span id="cb7-169"><a href="#cb7-169" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-170"><a href="#cb7-170" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
-<span id="cb7-171"><a href="#cb7-171" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km <span class="op">=</span> px.bar(</span>
-<span id="cb7-172"><a href="#cb7-172" aria-hidden="true" tabindex="-1"></a>    dialogue_km_pd, </span>
-<span id="cb7-173"><a href="#cb7-173" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">"school"</span>, </span>
-<span id="cb7-174"><a href="#cb7-174" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">"Dialogue_KM_Score"</span>, </span>
-<span id="cb7-175"><a href="#cb7-175" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"school"</span>,</span>
-<span id="cb7-176"><a href="#cb7-176" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Readability of Pure Dialogue (Kandel-Moles)"</span>,</span>
-<span id="cb7-177"><a href="#cb7-177" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>{<span class="st">"Dialogue_KM_Score"</span>: <span class="st">"Kandel-Moles Score (Higher = Easier)"</span>},</span>
-<span id="cb7-178"><a href="#cb7-178" aria-hidden="true" tabindex="-1"></a>    color_discrete_map<span class="op">=</span>{<span class="st">"Realist"</span>: <span class="st">"blue"</span>, <span class="st">"Romantic"</span>: <span class="st">"red"</span>}</span>
-<span id="cb7-179"><a href="#cb7-179" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb7-180"><a href="#cb7-180" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-181"><a href="#cb7-181" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km.update_layout(template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
-<span id="cb7-182"><a href="#cb7-182" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km.write_html(<span class="st">"plots/dialogue_readability_fr.html"</span>)</span>
-<span id="cb7-183"><a href="#cb7-183" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-184"><a href="#cb7-184" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"plots/dialogue_readability_fr.html"</span>)</span>
-<span id="cb7-185"><a href="#cb7-185" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-186"><a href="#cb7-186" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-187"><a href="#cb7-187" aria-hidden="true" tabindex="-1"></a><span class="co"># French Sliding Window</span></span>
-<span id="cb7-188"><a href="#cb7-188" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-189"><a href="#cb7-189" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sliding_window_fr(book_name, window_size<span class="op">=</span><span class="dv">2000</span>, step<span class="op">=</span><span class="dv">1000</span>):</span>
-<span id="cb7-190"><a href="#cb7-190" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> []</span>
-<span id="cb7-191"><a href="#cb7-191" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> df_fr.<span class="bu">filter</span>(F.col(<span class="st">"book"</span>) <span class="op">==</span> book_name).select(<span class="st">"token.result"</span>).collect():</span>
-<span id="cb7-192"><a href="#cb7-192" aria-hidden="true" tabindex="-1"></a>        words.extend(row.result)</span>
-<span id="cb7-193"><a href="#cb7-193" aria-hidden="true" tabindex="-1"></a>    </span>
-<span id="cb7-194"><a href="#cb7-194" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span> []</span>
-<span id="cb7-195"><a href="#cb7-195" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> start <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(words) <span class="op">-</span> window_size <span class="op">+</span> <span class="dv">1</span>, step):</span>
-<span id="cb7-196"><a href="#cb7-196" aria-hidden="true" tabindex="-1"></a>        window_words <span class="op">=</span> words[start:start<span class="op">+</span>window_size]</span>
-<span id="cb7-197"><a href="#cb7-197" aria-hidden="true" tabindex="-1"></a>        sentences <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> w <span class="kw">in</span> window_words <span class="cf">if</span> w.endswith((<span class="st">'.'</span>, <span class="st">'!'</span>, <span class="st">'?'</span>)))</span>
-<span id="cb7-198"><a href="#cb7-198" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> sentences <span class="op">==</span> <span class="dv">0</span>: <span class="cf">continue</span></span>
-<span id="cb7-199"><a href="#cb7-199" aria-hidden="true" tabindex="-1"></a>        wc <span class="op">=</span> <span class="bu">len</span>(window_words)</span>
-<span id="cb7-200"><a href="#cb7-200" aria-hidden="true" tabindex="-1"></a>        sc <span class="op">=</span> <span class="bu">sum</span>(french_syllable_count(w) <span class="cf">for</span> w <span class="kw">in</span> window_words)</span>
-<span id="cb7-201"><a href="#cb7-201" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> <span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (wc <span class="op">/</span> sentences) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (sc <span class="op">/</span> wc)</span>
-<span id="cb7-202"><a href="#cb7-202" aria-hidden="true" tabindex="-1"></a>        results.append({<span class="st">"position"</span>: start, <span class="st">"Score"</span>: score})</span>
-<span id="cb7-203"><a href="#cb7-203" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(results)</span>
-<span id="cb7-204"><a href="#cb7-204" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-205"><a href="#cb7-205" aria-hidden="true" tabindex="-1"></a>fig_slide_fr <span class="op">=</span> go.Figure()</span>
-<span id="cb7-206"><a href="#cb7-206" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book <span class="kw">in</span> books_fr.keys():</span>
-<span id="cb7-207"><a href="#cb7-207" aria-hidden="true" tabindex="-1"></a>    df_slide <span class="op">=</span> sliding_window_fr(book)</span>
-<span id="cb7-208"><a href="#cb7-208" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> df_slide.empty:</span>
-<span id="cb7-209"><a href="#cb7-209" aria-hidden="true" tabindex="-1"></a>        fig_slide_fr.add_trace(go.Scatter(x<span class="op">=</span>df_slide[<span class="st">"position"</span>], y<span class="op">=</span>df_slide[<span class="st">"Score"</span>], mode<span class="op">=</span><span class="st">"lines"</span>, name<span class="op">=</span>book))</span>
-<span id="cb7-210"><a href="#cb7-210" aria-hidden="true" tabindex="-1"></a>fig_slide_fr.update_layout(title<span class="op">=</span><span class="st">"Sliding Window Kandel-Moles Readability (Window Size = 2000)"</span>, template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
-<span id="cb7-211"><a href="#cb7-211" aria-hidden="true" tabindex="-1"></a>fig_slide_fr.write_html(<span class="st">"plots/sliding_window_fr.html"</span>)</span>
-<span id="cb7-212"><a href="#cb7-212" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-213"><a href="#cb7-213" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-214"><a href="#cb7-214" aria-hidden="true" tabindex="-1"></a><span class="co"># French Zipf's Law</span></span>
-<span id="cb7-215"><a href="#cb7-215" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-216"><a href="#cb7-216" aria-hidden="true" tabindex="-1"></a>words_df_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"token.result"</span>).alias(<span class="st">"word"</span>)).withColumn(<span class="st">"word"</span>, F.lower(F.col(<span class="st">"word"</span>))).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb7-217"><a href="#cb7-217" aria-hidden="true" tabindex="-1"></a>word_counts_fr <span class="op">=</span> words_df_fr.groupBy(<span class="st">"book"</span>, <span class="st">"word"</span>).agg(F.count(<span class="st">"*"</span>).alias(<span class="st">"frequency"</span>))</span>
-<span id="cb7-218"><a href="#cb7-218" aria-hidden="true" tabindex="-1"></a>zipf_ranked_fr <span class="op">=</span> word_counts_fr.withColumn(<span class="st">"rank"</span>, F.row_number().over(Window.partitionBy(<span class="st">"book"</span>).orderBy(F.desc(<span class="st">"frequency"</span>)))).toPandas()</span>
-<span id="cb7-219"><a href="#cb7-219" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-220"><a href="#cb7-220" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr <span class="op">=</span> px.line(zipf_ranked_fr, x<span class="op">=</span><span class="st">"rank"</span>, y<span class="op">=</span><span class="st">"frequency"</span>, color<span class="op">=</span><span class="st">"book"</span>, log_x<span class="op">=</span><span class="va">True</span>, log_y<span class="op">=</span><span class="va">True</span>, title<span class="op">=</span><span class="st">"Zipf Distribution (French Originals)"</span>)</span>
-<span id="cb7-221"><a href="#cb7-221" aria-hidden="true" tabindex="-1"></a>max_f <span class="op">=</span> zipf_ranked_fr[<span class="st">'frequency'</span>].<span class="bu">max</span>()</span>
-<span id="cb7-222"><a href="#cb7-222" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr.add_trace(go.Scatter(x<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">10000</span>], y<span class="op">=</span>[max_f, max_f<span class="op">/</span><span class="dv">10000</span>], mode<span class="op">=</span><span class="st">"lines"</span>, line<span class="op">=</span><span class="bu">dict</span>(dash<span class="op">=</span><span class="st">"dash"</span>, color<span class="op">=</span><span class="st">"black"</span>), name<span class="op">=</span><span class="st">"Ideal slope -1"</span>))</span>
-<span id="cb7-223"><a href="#cb7-223" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr.write_html(<span class="st">"plots/zipf_fr.html"</span>)</span>
-<span id="cb7-224"><a href="#cb7-224" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-225"><a href="#cb7-225" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-226"><a href="#cb7-226" aria-hidden="true" tabindex="-1"></a><span class="co"># French Dialogue vs. Narration</span></span>
-<span id="cb7-227"><a href="#cb7-227" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
-<span id="cb7-228"><a href="#cb7-228" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> is_french_dialogue(sentence):</span>
-<span id="cb7-229"><a href="#cb7-229" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> sentence: <span class="cf">return</span> <span class="va">False</span></span>
-<span id="cb7-230"><a href="#cb7-230" aria-hidden="true" tabindex="-1"></a>    txt <span class="op">=</span> sentence.strip()</span>
-<span id="cb7-231"><a href="#cb7-231" aria-hidden="true" tabindex="-1"></a>    <span class="co">#</span></span>
-<span id="cb7-232"><a href="#cb7-232" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="st">'«'</span> <span class="kw">in</span> txt) <span class="kw">or</span> (<span class="st">'»'</span> <span class="kw">in</span> txt) <span class="kw">or</span> txt.startswith(<span class="st">'—'</span>) <span class="kw">or</span> txt.startswith(<span class="st">'-'</span>)</span>
-<span id="cb7-233"><a href="#cb7-233" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-234"><a href="#cb7-234" aria-hidden="true" tabindex="-1"></a>is_fr_dialogue_udf <span class="op">=</span> F.udf(is_french_dialogue, BooleanType())</span>
-<span id="cb7-235"><a href="#cb7-235" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-236"><a href="#cb7-236" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>))</span>
-<span id="cb7-237"><a href="#cb7-237" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"dialogue"</span>, is_fr_dialogue_udf(F.col(<span class="st">"sentence"</span>)))</span>
-<span id="cb7-238"><a href="#cb7-238" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"length"</span>, F.length(F.col(<span class="st">"sentence"</span>)))</span>
-<span id="cb7-239"><a href="#cb7-239" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"school"</span>, F.when(F.col(<span class="st">"book"</span>).isin(zola_books_fr), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>))</span>
-<span id="cb7-240"><a href="#cb7-240" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-241"><a href="#cb7-241" aria-hidden="true" tabindex="-1"></a>summary_fr <span class="op">=</span> sentences_df_fr.groupBy(<span class="st">"school"</span>, <span class="st">"dialogue"</span>).agg(F.avg(<span class="st">"length"</span>).alias(<span class="st">"avg_length"</span>)).toPandas()</span>
-<span id="cb7-242"><a href="#cb7-242" aria-hidden="true" tabindex="-1"></a>summary_fr[<span class="st">"category"</span>] <span class="op">=</span> summary_fr[<span class="st">"dialogue"</span>].<span class="bu">map</span>({<span class="va">True</span>: <span class="st">"Dialogue"</span>, <span class="va">False</span>: <span class="st">"Narration"</span>})</span>
-<span id="cb7-243"><a href="#cb7-243" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-244"><a href="#cb7-244" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fr <span class="op">=</span> px.bar(summary_fr, x<span class="op">=</span><span class="st">"school"</span>, y<span class="op">=</span><span class="st">"avg_length"</span>, color<span class="op">=</span><span class="st">"category"</span>, barmode<span class="op">=</span><span class="st">"group"</span>,</span>
-<span id="cb7-245"><a href="#cb7-245" aria-hidden="true" tabindex="-1"></a>                         title<span class="op">=</span><span class="st">"Average Sentence Length: Dialogue vs Narration (French)"</span>,</span>
-<span id="cb7-246"><a href="#cb7-246" aria-hidden="true" tabindex="-1"></a>                         labels<span class="op">=</span>{<span class="st">"avg_length"</span>: <span class="st">"Avg Characters per Sentence"</span>})</span>
-<span id="cb7-247"><a href="#cb7-247" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fr.write_html(<span class="st">"plots/dialogue_fr.html"</span>)</span>
-<span id="cb7-248"><a href="#cb7-248" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-249"><a href="#cb7-249" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Ok_rench version"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb7-38"><a href="#cb7-38" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"All stylometric analyses complete!"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</details>
+</div>
+<div id="1ebdac04" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> requests</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sparknlp</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sparknlp.pretrained <span class="im">import</span> PretrainedPipeline</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyspark.sql <span class="im">import</span> SparkSession, functions <span class="im">as</span> F, Window</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> pyspark.sql.types <span class="im">import</span> IntegerType, BooleanType</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.express <span class="im">as</span> px</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> plotly.graph_objects <span class="im">as</span> go</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="co"># French Data Definition &amp; Download</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>books_fr <span class="op">=</span> {</span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>    <span class="st">"assommoir_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/6497/pg6497.txt"</span>,</span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/5711/pg5711.txt"</span>,</span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nana_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/5250/pg5250.txt"</span>,</span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame_fr"</span>: <span class="st">"https://www.gutenberg.org/cache/epub/19657/pg19657.txt"</span>,</span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">"homme_qui_rit_fr"</span>: <span class="st">"https://www.gutenberg.org/ebooks/5423.txt.utf-8"</span>,</span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">"quatreving-treize_fr"</span>: <span class="st">"https://www.gutenberg.org/ebooks/9645.txt.utf-8"</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>delimiters_fr <span class="op">=</span> {</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"assommoir_fr"</span>: (<span class="st">"Gervaise avait attendu"</span>, <span class="st">"Fais dodo, ma belle!"</span>),</span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"germinal_fr"</span>: (<span class="st">"Dans la plaine rase"</span>, <span class="st">"éclater la terre."</span>),</span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"nana_fr"</span>: (<span class="st">"A neuf heures"</span>, <span class="st">"à Berlin!  à Berlin!"</span>),</span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">"notre-dame_fr"</span>: (<span class="st">"Il y a aujourd'hui trois cent"</span>, <span class="st">"il tomba en poussière."</span>),</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">"homme_qui_rit_fr"</span>: (<span class="st">"Ursus et Homo étaient"</span>, <span class="st">"la mer."</span>),</span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"quatreving-treize_fr"</span>: (<span class="st">"Dans les derniers jours de mai"</span>, <span class="st">"la lumière de l'autre."</span>)</span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>zola_books_fr <span class="op">=</span> [<span class="st">"assommoir_fr"</span>, <span class="st">"germinal_fr"</span>, <span class="st">"nana_fr"</span>]</span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a>os.makedirs(<span class="st">"book_data_fr"</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>downloaded_fr <span class="op">=</span> {}</span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book_title, url <span class="kw">in</span> books_fr.items():</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>    clean_path <span class="op">=</span> os.path.join(<span class="st">"book_data_fr"</span>, book_title <span class="op">+</span> <span class="st">".txt"</span>)</span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(clean_path):</span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> url <span class="kw">not</span> <span class="kw">in</span> downloaded_fr:</span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a>        raw_filename <span class="op">=</span> url.split(<span class="st">"/"</span>)[<span class="op">-</span><span class="dv">1</span>]</span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>        raw_path <span class="op">=</span> os.path.join(<span class="st">"book_data_fr"</span>, raw_filename)</span>
+<span id="cb8-46"><a href="#cb8-46" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> os.path.exists(raw_path):</span>
+<span id="cb8-47"><a href="#cb8-47" aria-hidden="true" tabindex="-1"></a>            r <span class="op">=</span> requests.get(url)</span>
+<span id="cb8-48"><a href="#cb8-48" aria-hidden="true" tabindex="-1"></a>            <span class="cf">with</span> <span class="bu">open</span>(raw_path, <span class="st">"w"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb8-49"><a href="#cb8-49" aria-hidden="true" tabindex="-1"></a>                f.write(r.text)</span>
+<span id="cb8-50"><a href="#cb8-50" aria-hidden="true" tabindex="-1"></a>        downloaded_fr[url] <span class="op">=</span> raw_path</span>
+<span id="cb8-51"><a href="#cb8-51" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb8-52"><a href="#cb8-52" aria-hidden="true" tabindex="-1"></a>        raw_path <span class="op">=</span> downloaded_fr[url]</span>
+<span id="cb8-53"><a href="#cb8-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-54"><a href="#cb8-54" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(raw_path, <span class="st">"r"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb8-55"><a href="#cb8-55" aria-hidden="true" tabindex="-1"></a>        full_text <span class="op">=</span> f.read()</span>
+<span id="cb8-56"><a href="#cb8-56" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-57"><a href="#cb8-57" aria-hidden="true" tabindex="-1"></a>    start_token, end_token <span class="op">=</span> delimiters_fr[book_title]</span>
+<span id="cb8-58"><a href="#cb8-58" aria-hidden="true" tabindex="-1"></a>    start_idx <span class="op">=</span> full_text.find(start_token)</span>
+<span id="cb8-59"><a href="#cb8-59" aria-hidden="true" tabindex="-1"></a>    end_idx <span class="op">=</span> full_text.rfind(end_token) <span class="op">+</span> <span class="bu">len</span>(end_token)</span>
+<span id="cb8-60"><a href="#cb8-60" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-61"><a href="#cb8-61" aria-hidden="true" tabindex="-1"></a>    extracted <span class="op">=</span> full_text[start_idx:end_idx] <span class="cf">if</span> start_idx <span class="op">!=</span> <span class="op">-</span><span class="dv">1</span> <span class="cf">else</span> full_text</span>
+<span id="cb8-62"><a href="#cb8-62" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(clean_path, <span class="st">"w"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb8-63"><a href="#cb8-63" aria-hidden="true" tabindex="-1"></a>        f.write(extracted)</span>
+<span id="cb8-64"><a href="#cb8-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-65"><a href="#cb8-65" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-66"><a href="#cb8-66" aria-hidden="true" tabindex="-1"></a><span class="co"># French Annotation</span></span>
+<span id="cb8-67"><a href="#cb8-67" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-68"><a href="#cb8-68" aria-hidden="true" tabindex="-1"></a>existing <span class="op">=</span> SparkSession.getActiveSession()</span>
+<span id="cb8-69"><a href="#cb8-69" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> existing: existing.stop()</span>
+<span id="cb8-70"><a href="#cb8-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-71"><a href="#cb8-71" aria-hidden="true" tabindex="-1"></a>spark <span class="op">=</span> sparknlp.start(memory<span class="op">=</span><span class="st">"1g"</span>)</span>
+<span id="cb8-72"><a href="#cb8-72" aria-hidden="true" tabindex="-1"></a>spark.conf.<span class="bu">set</span>(<span class="st">"spark.sql.shuffle.partitions"</span>, <span class="st">"4"</span>)</span>
+<span id="cb8-73"><a href="#cb8-73" aria-hidden="true" tabindex="-1"></a>pipeline <span class="op">=</span> PretrainedPipeline(<span class="st">"explain_document_ml"</span>) <span class="co"># ml pipeline supports French</span></span>
+<span id="cb8-74"><a href="#cb8-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-75"><a href="#cb8-75" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> split_text(text, chunk_size<span class="op">=</span><span class="dv">3000</span>):</span>
+<span id="cb8-76"><a href="#cb8-76" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> text.split()</span>
+<span id="cb8-77"><a href="#cb8-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> [<span class="st">" "</span>.join(words[i:i<span class="op">+</span>chunk_size]) <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(words), chunk_size)]</span>
+<span id="cb8-78"><a href="#cb8-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-79"><a href="#cb8-79" aria-hidden="true" tabindex="-1"></a>os.makedirs(<span class="st">"results_fr"</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb8-80"><a href="#cb8-80" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-81"><a href="#cb8-81" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book_title <span class="kw">in</span> books_fr:</span>
+<span id="cb8-82"><a href="#cb8-82" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> os.path.exists(<span class="ss">f"results_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">"</span>): <span class="cf">continue</span></span>
+<span id="cb8-83"><a href="#cb8-83" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(<span class="ss">f"book_data_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">.txt"</span>, <span class="st">"r"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb8-84"><a href="#cb8-84" aria-hidden="true" tabindex="-1"></a>        chunks <span class="op">=</span> split_text(f.read())</span>
+<span id="cb8-85"><a href="#cb8-85" aria-hidden="true" tabindex="-1"></a>    df <span class="op">=</span> spark.createDataFrame([[c] <span class="cf">for</span> c <span class="kw">in</span> chunks]).toDF(<span class="st">"text"</span>)</span>
+<span id="cb8-86"><a href="#cb8-86" aria-hidden="true" tabindex="-1"></a>    res <span class="op">=</span> pipeline.transform(df)</span>
+<span id="cb8-87"><a href="#cb8-87" aria-hidden="true" tabindex="-1"></a>    res.write.mode(<span class="st">"overwrite"</span>).parquet(<span class="ss">f"results_fr/</span><span class="sc">{</span>book_title<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb8-88"><a href="#cb8-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-89"><a href="#cb8-89" aria-hidden="true" tabindex="-1"></a><span class="co"># Load all French annotated data</span></span>
+<span id="cb8-90"><a href="#cb8-90" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_fr_corpus():</span>
+<span id="cb8-91"><a href="#cb8-91" aria-hidden="true" tabindex="-1"></a>    first <span class="op">=</span> <span class="va">True</span></span>
+<span id="cb8-92"><a href="#cb8-92" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> folder <span class="kw">in</span> os.listdir(<span class="st">"results_fr"</span>):</span>
+<span id="cb8-93"><a href="#cb8-93" aria-hidden="true" tabindex="-1"></a>        path <span class="op">=</span> os.path.join(<span class="st">"results_fr"</span>, folder)</span>
+<span id="cb8-94"><a href="#cb8-94" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="kw">not</span> os.path.isdir(path): <span class="cf">continue</span></span>
+<span id="cb8-95"><a href="#cb8-95" aria-hidden="true" tabindex="-1"></a>        df <span class="op">=</span> spark.read.parquet(path).withColumn(<span class="st">"book"</span>, F.lit(folder))</span>
+<span id="cb8-96"><a href="#cb8-96" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> first:</span>
+<span id="cb8-97"><a href="#cb8-97" aria-hidden="true" tabindex="-1"></a>            all_df <span class="op">=</span> df</span>
+<span id="cb8-98"><a href="#cb8-98" aria-hidden="true" tabindex="-1"></a>            first <span class="op">=</span> <span class="va">False</span></span>
+<span id="cb8-99"><a href="#cb8-99" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb8-100"><a href="#cb8-100" aria-hidden="true" tabindex="-1"></a>            all_df <span class="op">=</span> all_df.unionByName(df)</span>
+<span id="cb8-101"><a href="#cb8-101" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> all_df</span>
+<span id="cb8-102"><a href="#cb8-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-103"><a href="#cb8-103" aria-hidden="true" tabindex="-1"></a>df_fr <span class="op">=</span> load_fr_corpus()</span>
+<span id="cb8-104"><a href="#cb8-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-105"><a href="#cb8-105" aria-hidden="true" tabindex="-1"></a><span class="co"># French Dialogue vs. Narration  </span></span>
+<span id="cb8-106"><a href="#cb8-106" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-107"><a href="#cb8-107" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> is_french_dialogue(sentence):</span>
+<span id="cb8-108"><a href="#cb8-108" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> sentence: <span class="cf">return</span> <span class="va">False</span></span>
+<span id="cb8-109"><a href="#cb8-109" aria-hidden="true" tabindex="-1"></a>    txt <span class="op">=</span> sentence.strip()</span>
+<span id="cb8-110"><a href="#cb8-110" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> (<span class="st">'«'</span> <span class="kw">in</span> txt) <span class="kw">or</span> (<span class="st">'»'</span> <span class="kw">in</span> txt) <span class="kw">or</span> txt.startswith(<span class="st">'—'</span>) <span class="kw">or</span> txt.startswith(<span class="st">'-'</span>)</span>
+<span id="cb8-111"><a href="#cb8-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-112"><a href="#cb8-112" aria-hidden="true" tabindex="-1"></a>is_fr_dialogue_udf <span class="op">=</span> F.udf(is_french_dialogue, BooleanType())</span>
+<span id="cb8-113"><a href="#cb8-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-114"><a href="#cb8-114" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"sentence.result"</span>).alias(<span class="st">"sentence"</span>))</span>
+<span id="cb8-115"><a href="#cb8-115" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"dialogue"</span>, is_fr_dialogue_udf(F.col(<span class="st">"sentence"</span>)))</span>
+<span id="cb8-116"><a href="#cb8-116" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"length"</span>, F.length(F.col(<span class="st">"sentence"</span>)))</span>
+<span id="cb8-117"><a href="#cb8-117" aria-hidden="true" tabindex="-1"></a>sentences_df_fr <span class="op">=</span> sentences_df_fr.withColumn(<span class="st">"school"</span>,F.when(F.col(<span class="st">"book"</span>).isin(zola_books_fr), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>))</span>
+<span id="cb8-118"><a href="#cb8-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-119"><a href="#cb8-119" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-120"><a href="#cb8-120" aria-hidden="true" tabindex="-1"></a><span class="co">#  Kandel-Moles Readability</span></span>
+<span id="cb8-121"><a href="#cb8-121" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-122"><a href="#cb8-122" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> french_syllable_count(word):</span>
+<span id="cb8-123"><a href="#cb8-123" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> word.lower()</span>
+<span id="cb8-124"><a href="#cb8-124" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(word) <span class="op">&lt;=</span> <span class="dv">3</span>: <span class="cf">return</span> <span class="dv">1</span></span>
+<span id="cb8-125"><a href="#cb8-125" aria-hidden="true" tabindex="-1"></a>    <span class="co">#  e, es, ent</span></span>
+<span id="cb8-126"><a href="#cb8-126" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> re.sub(<span class="vs">r'es</span><span class="op">?</span><span class="dv">$</span><span class="vs">'</span>, <span class="st">''</span>, word)</span>
+<span id="cb8-127"><a href="#cb8-127" aria-hidden="true" tabindex="-1"></a>    word <span class="op">=</span> re.sub(<span class="vs">r'ent</span><span class="dv">$</span><span class="vs">'</span>, <span class="st">''</span>, word)</span>
+<span id="cb8-128"><a href="#cb8-128" aria-hidden="true" tabindex="-1"></a>    matches <span class="op">=</span> re.findall(<span class="vs">r'</span><span class="pp">[aeiouyéàèùâêîôûëïüÿœæ]</span><span class="op">+</span><span class="vs">'</span>, word)</span>
+<span id="cb8-129"><a href="#cb8-129" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="bu">max</span>(<span class="dv">1</span>, <span class="bu">len</span>(matches))</span>
+<span id="cb8-130"><a href="#cb8-130" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-131"><a href="#cb8-131" aria-hidden="true" tabindex="-1"></a>fr_syllable_udf <span class="op">=</span> F.udf(french_syllable_count, IntegerType())</span>
+<span id="cb8-132"><a href="#cb8-132" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-133"><a href="#cb8-133" aria-hidden="true" tabindex="-1"></a>chunk_stats_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.size(<span class="st">"sentence"</span>).alias(<span class="st">"num_sentences"</span>), <span class="st">"token.result"</span>).withColumnRenamed(<span class="st">"result"</span>, <span class="st">"tokens"</span>)</span>
+<span id="cb8-134"><a href="#cb8-134" aria-hidden="true" tabindex="-1"></a>chunk_stats_fr <span class="op">=</span> chunk_stats_fr.withColumn(<span class="st">"school"</span>, F.when(F.col(<span class="st">"book"</span>).isin(zola_books_fr), <span class="st">"Realist"</span>).otherwise(<span class="st">"Romantic"</span>))</span>
+<span id="cb8-135"><a href="#cb8-135" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-136"><a href="#cb8-136" aria-hidden="true" tabindex="-1"></a>sentences_fr <span class="op">=</span> chunk_stats_fr.groupBy(<span class="st">"book"</span>, <span class="st">"school"</span>).agg(F.<span class="bu">sum</span>(<span class="st">"num_sentences"</span>).alias(<span class="st">"total_sentences"</span>))</span>
+<span id="cb8-137"><a href="#cb8-137" aria-hidden="true" tabindex="-1"></a>tokens_fr <span class="op">=</span> chunk_stats_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"tokens"</span>).alias(<span class="st">"word"</span>)).withColumn(<span class="st">"syllables"</span>, fr_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
+<span id="cb8-138"><a href="#cb8-138" aria-hidden="true" tabindex="-1"></a>words_fr <span class="op">=</span> tokens_fr.groupBy(<span class="st">"book"</span>).agg(F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>), F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>))</span>
+<span id="cb8-139"><a href="#cb8-139" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-140"><a href="#cb8-140" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-141"><a href="#cb8-141" aria-hidden="true" tabindex="-1"></a>book_agg_fr <span class="op">=</span> sentences_fr.join(words_fr, on<span class="op">=</span><span class="st">"book"</span>)</span>
+<span id="cb8-142"><a href="#cb8-142" aria-hidden="true" tabindex="-1"></a>book_indices_fr <span class="op">=</span> book_agg_fr.withColumn(</span>
+<span id="cb8-143"><a href="#cb8-143" aria-hidden="true" tabindex="-1"></a>    <span class="st">"KM_Score"</span>,</span>
+<span id="cb8-144"><a href="#cb8-144" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
+<span id="cb8-145"><a href="#cb8-145" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-146"><a href="#cb8-146" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-147"><a href="#cb8-147" aria-hidden="true" tabindex="-1"></a>fig_km <span class="op">=</span> px.bar(book_indices_fr.toPandas(), x<span class="op">=</span><span class="st">"book"</span>, y<span class="op">=</span><span class="st">"KM_Score"</span>, color<span class="op">=</span><span class="st">"school"</span>,</span>
+<span id="cb8-148"><a href="#cb8-148" aria-hidden="true" tabindex="-1"></a>                title<span class="op">=</span><span class="st">"Kandel-Moles Readability Indices (Original French Texts)"</span>,</span>
+<span id="cb8-149"><a href="#cb8-149" aria-hidden="true" tabindex="-1"></a>                labels<span class="op">=</span>{<span class="st">"KM_Score"</span>: <span class="st">"Kandel-Moles Score"</span>})</span>
+<span id="cb8-150"><a href="#cb8-150" aria-hidden="true" tabindex="-1"></a>fig_km.write_html(<span class="st">"plots/kandel_moles_fr.html"</span>)</span>
+<span id="cb8-151"><a href="#cb8-151" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-152"><a href="#cb8-152" aria-hidden="true" tabindex="-1"></a><span class="co">#Kandel-Moles for Dialogues Only</span></span>
+<span id="cb8-153"><a href="#cb8-153" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-154"><a href="#cb8-154" aria-hidden="true" tabindex="-1"></a>dialogue_only_fr <span class="op">=</span> sentences_df_fr.<span class="bu">filter</span>(F.col(<span class="st">"dialogue"</span>) <span class="op">==</span> <span class="va">True</span>)</span>
+<span id="cb8-155"><a href="#cb8-155" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-156"><a href="#cb8-156" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-157"><a href="#cb8-157" aria-hidden="true" tabindex="-1"></a>dialogue_words_fr <span class="op">=</span> dialogue_only_fr.withColumn(</span>
+<span id="cb8-158"><a href="#cb8-158" aria-hidden="true" tabindex="-1"></a>    <span class="st">"word"</span>, F.explode(F.split(F.col(<span class="st">"sentence"</span>), <span class="vs">r"</span><span class="dv">\W</span><span class="op">+</span><span class="vs">"</span>))</span>
+<span id="cb8-159"><a href="#cb8-159" aria-hidden="true" tabindex="-1"></a>).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">0</span>)</span>
+<span id="cb8-160"><a href="#cb8-160" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-161"><a href="#cb8-161" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-162"><a href="#cb8-162" aria-hidden="true" tabindex="-1"></a>dialogue_words_fr <span class="op">=</span> dialogue_words_fr.withColumn(<span class="st">"syllables"</span>, fr_syllable_udf(F.col(<span class="st">"word"</span>)))</span>
+<span id="cb8-163"><a href="#cb8-163" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-164"><a href="#cb8-164" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-165"><a href="#cb8-165" aria-hidden="true" tabindex="-1"></a>dialogue_word_stats <span class="op">=</span> dialogue_words_fr.groupBy(<span class="st">"school"</span>).agg(</span>
+<span id="cb8-166"><a href="#cb8-166" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"word"</span>).alias(<span class="st">"total_words"</span>),</span>
+<span id="cb8-167"><a href="#cb8-167" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">sum</span>(<span class="st">"syllables"</span>).alias(<span class="st">"total_syllables"</span>)</span>
+<span id="cb8-168"><a href="#cb8-168" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-169"><a href="#cb8-169" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-170"><a href="#cb8-170" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-171"><a href="#cb8-171" aria-hidden="true" tabindex="-1"></a>dialogue_sentence_stats <span class="op">=</span> dialogue_only_fr.groupBy(<span class="st">"school"</span>).agg(</span>
+<span id="cb8-172"><a href="#cb8-172" aria-hidden="true" tabindex="-1"></a>    F.count(<span class="st">"sentence"</span>).alias(<span class="st">"total_sentences"</span>)</span>
+<span id="cb8-173"><a href="#cb8-173" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-174"><a href="#cb8-174" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-175"><a href="#cb8-175" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-176"><a href="#cb8-176" aria-hidden="true" tabindex="-1"></a>dialogue_km <span class="op">=</span> dialogue_word_stats.join(dialogue_sentence_stats, on<span class="op">=</span><span class="st">"school"</span>)</span>
+<span id="cb8-177"><a href="#cb8-177" aria-hidden="true" tabindex="-1"></a>dialogue_km <span class="op">=</span> dialogue_km.withColumn(</span>
+<span id="cb8-178"><a href="#cb8-178" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Dialogue_KM_Score"</span>,</span>
+<span id="cb8-179"><a href="#cb8-179" aria-hidden="true" tabindex="-1"></a>    F.<span class="bu">round</span>(<span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (F.col(<span class="st">"total_words"</span>) <span class="op">/</span> F.col(<span class="st">"total_sentences"</span>)) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (F.col(<span class="st">"total_syllables"</span>) <span class="op">/</span> F.col(<span class="st">"total_words"</span>)), <span class="dv">2</span>)</span>
+<span id="cb8-180"><a href="#cb8-180" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-181"><a href="#cb8-181" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-182"><a href="#cb8-182" aria-hidden="true" tabindex="-1"></a>dialogue_km_pd <span class="op">=</span> dialogue_km.toPandas()</span>
+<span id="cb8-183"><a href="#cb8-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-184"><a href="#cb8-184" aria-hidden="true" tabindex="-1"></a><span class="co"># </span></span>
+<span id="cb8-185"><a href="#cb8-185" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km <span class="op">=</span> px.bar(</span>
+<span id="cb8-186"><a href="#cb8-186" aria-hidden="true" tabindex="-1"></a>    dialogue_km_pd, </span>
+<span id="cb8-187"><a href="#cb8-187" aria-hidden="true" tabindex="-1"></a>    x<span class="op">=</span><span class="st">"school"</span>, </span>
+<span id="cb8-188"><a href="#cb8-188" aria-hidden="true" tabindex="-1"></a>    y<span class="op">=</span><span class="st">"Dialogue_KM_Score"</span>, </span>
+<span id="cb8-189"><a href="#cb8-189" aria-hidden="true" tabindex="-1"></a>    color<span class="op">=</span><span class="st">"school"</span>,</span>
+<span id="cb8-190"><a href="#cb8-190" aria-hidden="true" tabindex="-1"></a>    title<span class="op">=</span><span class="st">"Readability of Pure Dialogue (Kandel-Moles)"</span>,</span>
+<span id="cb8-191"><a href="#cb8-191" aria-hidden="true" tabindex="-1"></a>    labels<span class="op">=</span>{<span class="st">"Dialogue_KM_Score"</span>: <span class="st">"Kandel-Moles Score (Higher = Easier)"</span>},</span>
+<span id="cb8-192"><a href="#cb8-192" aria-hidden="true" tabindex="-1"></a>    color_discrete_map<span class="op">=</span>{<span class="st">"Realist"</span>: <span class="st">"blue"</span>, <span class="st">"Romantic"</span>: <span class="st">"red"</span>}</span>
+<span id="cb8-193"><a href="#cb8-193" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-194"><a href="#cb8-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-195"><a href="#cb8-195" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km.update_layout(template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
+<span id="cb8-196"><a href="#cb8-196" aria-hidden="true" tabindex="-1"></a>fig_dialogue_km.write_html(<span class="st">"plots/dialogue_readability_fr.html"</span>)</span>
+<span id="cb8-197"><a href="#cb8-197" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-198"><a href="#cb8-198" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"=== French Dialogue vs Narration ==="</span>)</span>
+<span id="cb8-199"><a href="#cb8-199" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(summary_fr.to_string())</span>
+<span id="cb8-200"><a href="#cb8-200" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-201"><a href="#cb8-201" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-202"><a href="#cb8-202" aria-hidden="true" tabindex="-1"></a><span class="co"># French Sliding Window</span></span>
+<span id="cb8-203"><a href="#cb8-203" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-204"><a href="#cb8-204" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> sliding_window_fr(book_name, window_size<span class="op">=</span><span class="dv">2000</span>, step<span class="op">=</span><span class="dv">1000</span>):</span>
+<span id="cb8-205"><a href="#cb8-205" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> []</span>
+<span id="cb8-206"><a href="#cb8-206" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> row <span class="kw">in</span> df_fr.<span class="bu">filter</span>(F.col(<span class="st">"book"</span>) <span class="op">==</span> book_name).select(<span class="st">"token.result"</span>).collect():</span>
+<span id="cb8-207"><a href="#cb8-207" aria-hidden="true" tabindex="-1"></a>        words.extend(row.result)</span>
+<span id="cb8-208"><a href="#cb8-208" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb8-209"><a href="#cb8-209" aria-hidden="true" tabindex="-1"></a>    results <span class="op">=</span> []</span>
+<span id="cb8-210"><a href="#cb8-210" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> start <span class="kw">in</span> <span class="bu">range</span>(<span class="dv">0</span>, <span class="bu">len</span>(words) <span class="op">-</span> window_size <span class="op">+</span> <span class="dv">1</span>, step):</span>
+<span id="cb8-211"><a href="#cb8-211" aria-hidden="true" tabindex="-1"></a>        window_words <span class="op">=</span> words[start:start<span class="op">+</span>window_size]</span>
+<span id="cb8-212"><a href="#cb8-212" aria-hidden="true" tabindex="-1"></a>        sentences <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> w <span class="kw">in</span> window_words <span class="cf">if</span> w.endswith((<span class="st">'.'</span>, <span class="st">'!'</span>, <span class="st">'?'</span>)))</span>
+<span id="cb8-213"><a href="#cb8-213" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> sentences <span class="op">==</span> <span class="dv">0</span>: <span class="cf">continue</span></span>
+<span id="cb8-214"><a href="#cb8-214" aria-hidden="true" tabindex="-1"></a>        wc <span class="op">=</span> <span class="bu">len</span>(window_words)</span>
+<span id="cb8-215"><a href="#cb8-215" aria-hidden="true" tabindex="-1"></a>        sc <span class="op">=</span> <span class="bu">sum</span>(french_syllable_count(w) <span class="cf">for</span> w <span class="kw">in</span> window_words)</span>
+<span id="cb8-216"><a href="#cb8-216" aria-hidden="true" tabindex="-1"></a>        score <span class="op">=</span> <span class="dv">207</span> <span class="op">-</span> <span class="fl">1.015</span> <span class="op">*</span> (wc <span class="op">/</span> sentences) <span class="op">-</span> <span class="fl">73.6</span> <span class="op">*</span> (sc <span class="op">/</span> wc)</span>
+<span id="cb8-217"><a href="#cb8-217" aria-hidden="true" tabindex="-1"></a>        results.append({<span class="st">"position"</span>: start, <span class="st">"Score"</span>: score})</span>
+<span id="cb8-218"><a href="#cb8-218" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> pd.DataFrame(results)</span>
+<span id="cb8-219"><a href="#cb8-219" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-220"><a href="#cb8-220" aria-hidden="true" tabindex="-1"></a>fig_slide_fr <span class="op">=</span> go.Figure()</span>
+<span id="cb8-221"><a href="#cb8-221" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> book <span class="kw">in</span> books_fr.keys():</span>
+<span id="cb8-222"><a href="#cb8-222" aria-hidden="true" tabindex="-1"></a>    df_slide <span class="op">=</span> sliding_window_fr(book)</span>
+<span id="cb8-223"><a href="#cb8-223" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> df_slide.empty:</span>
+<span id="cb8-224"><a href="#cb8-224" aria-hidden="true" tabindex="-1"></a>        fig_slide_fr.add_trace(go.Scatter(x<span class="op">=</span>df_slide[<span class="st">"position"</span>], y<span class="op">=</span>df_slide[<span class="st">"Score"</span>], mode<span class="op">=</span><span class="st">"lines"</span>, name<span class="op">=</span>book))</span>
+<span id="cb8-225"><a href="#cb8-225" aria-hidden="true" tabindex="-1"></a>fig_slide_fr.update_layout(title<span class="op">=</span><span class="st">"Sliding Window Kandel-Moles Readability (Window Size = 2000)"</span>, template<span class="op">=</span><span class="st">"plotly_white"</span>)</span>
+<span id="cb8-226"><a href="#cb8-226" aria-hidden="true" tabindex="-1"></a>fig_slide_fr.write_html(<span class="st">"plots/sliding_window_fr.html"</span>)</span>
+<span id="cb8-227"><a href="#cb8-227" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-228"><a href="#cb8-228" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-229"><a href="#cb8-229" aria-hidden="true" tabindex="-1"></a><span class="co"># French Zipf's Law</span></span>
+<span id="cb8-230"><a href="#cb8-230" aria-hidden="true" tabindex="-1"></a><span class="co"># =====================================================================</span></span>
+<span id="cb8-231"><a href="#cb8-231" aria-hidden="true" tabindex="-1"></a>words_df_fr <span class="op">=</span> df_fr.select(<span class="st">"book"</span>, F.explode(<span class="st">"token.result"</span>).alias(<span class="st">"word"</span>)).withColumn(<span class="st">"word"</span>, F.lower(F.col(<span class="st">"word"</span>))).<span class="bu">filter</span>(F.length(F.col(<span class="st">"word"</span>)) <span class="op">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb8-232"><a href="#cb8-232" aria-hidden="true" tabindex="-1"></a>word_counts_fr <span class="op">=</span> words_df_fr.groupBy(<span class="st">"book"</span>, <span class="st">"word"</span>).agg(F.count(<span class="st">"*"</span>).alias(<span class="st">"frequency"</span>))</span>
+<span id="cb8-233"><a href="#cb8-233" aria-hidden="true" tabindex="-1"></a>zipf_ranked_fr <span class="op">=</span> word_counts_fr.withColumn(<span class="st">"rank"</span>, F.row_number().over(Window.partitionBy(<span class="st">"book"</span>).orderBy(F.desc(<span class="st">"frequency"</span>)))).toPandas()</span>
+<span id="cb8-234"><a href="#cb8-234" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-235"><a href="#cb8-235" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr <span class="op">=</span> px.line(zipf_ranked_fr, x<span class="op">=</span><span class="st">"rank"</span>, y<span class="op">=</span><span class="st">"frequency"</span>, color<span class="op">=</span><span class="st">"book"</span>, log_x<span class="op">=</span><span class="va">True</span>, log_y<span class="op">=</span><span class="va">True</span>, title<span class="op">=</span><span class="st">"Zipf Distribution (French Originals)"</span>)</span>
+<span id="cb8-236"><a href="#cb8-236" aria-hidden="true" tabindex="-1"></a>max_f <span class="op">=</span> zipf_ranked_fr[<span class="st">'frequency'</span>].<span class="bu">max</span>()</span>
+<span id="cb8-237"><a href="#cb8-237" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr.add_trace(go.Scatter(x<span class="op">=</span>[<span class="dv">1</span>, <span class="dv">10000</span>], y<span class="op">=</span>[max_f, max_f<span class="op">/</span><span class="dv">10000</span>], mode<span class="op">=</span><span class="st">"lines"</span>, line<span class="op">=</span><span class="bu">dict</span>(dash<span class="op">=</span><span class="st">"dash"</span>, color<span class="op">=</span><span class="st">"black"</span>), name<span class="op">=</span><span class="st">"Ideal slope -1"</span>))</span>
+<span id="cb8-238"><a href="#cb8-238" aria-hidden="true" tabindex="-1"></a>fig_zipf_fr.write_html(<span class="st">"plots/zipf_fr.html"</span>)</span>
+<span id="cb8-239"><a href="#cb8-239" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-240"><a href="#cb8-240" aria-hidden="true" tabindex="-1"></a>summary_fr <span class="op">=</span> sentences_df_fr.groupBy(<span class="st">"school"</span>, <span class="st">"dialogue"</span>).agg(F.avg(<span class="st">"length"</span>).alias(<span class="st">"avg_length"</span>)).toPandas()</span>
+<span id="cb8-241"><a href="#cb8-241" aria-hidden="true" tabindex="-1"></a>summary_fr[<span class="st">"category"</span>] <span class="op">=</span> summary_fr[<span class="st">"dialogue"</span>].<span class="bu">map</span>({<span class="va">True</span>: <span class="st">"Dialogue"</span>, <span class="va">False</span>: <span class="st">"Narration"</span>})</span>
+<span id="cb8-242"><a href="#cb8-242" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-243"><a href="#cb8-243" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fr <span class="op">=</span> px.bar(summary_fr, x<span class="op">=</span><span class="st">"school"</span>, y<span class="op">=</span><span class="st">"avg_length"</span>, color<span class="op">=</span><span class="st">"category"</span>, barmode<span class="op">=</span><span class="st">"group"</span>,</span>
+<span id="cb8-244"><a href="#cb8-244" aria-hidden="true" tabindex="-1"></a>                         title<span class="op">=</span><span class="st">"Average Sentence Length: Dialogue vs Narration (French)"</span>,</span>
+<span id="cb8-245"><a href="#cb8-245" aria-hidden="true" tabindex="-1"></a>                         labels<span class="op">=</span>{<span class="st">"avg_length"</span>: <span class="st">"Avg Characters per Sentence"</span>})</span>
+<span id="cb8-246"><a href="#cb8-246" aria-hidden="true" tabindex="-1"></a>fig_dialogue_fr.write_html(<span class="st">"plots/dialogue_fr.html"</span>)</span>
+<span id="cb8-247"><a href="#cb8-247" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-248"><a href="#cb8-248" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Ok_rench version"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </details>
 </div>
 </section>
