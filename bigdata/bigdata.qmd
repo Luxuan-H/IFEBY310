@@ -6,6 +6,7 @@ format:
   html:
     toc: true
 jupyter: python3
+
 ---
 
 # 1. Data Description and Extraction Pipeline
@@ -126,7 +127,6 @@ Sentences were classified as dialogue or narration using different rules for eac
 ```
 *Figure 4.4.1:Average Sentence Length — Dialogue vs Narration (English Translations).*
 
-
 ```{=html}
 <iframe src="plots/dialogue_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
@@ -148,6 +148,37 @@ In the French data, the pattern is reversed. Dialogue sentences are shorter than
 
 The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above.
 The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).
+
+# 5.Experience with Spark and Big Data File Formats
+
+## 5.1 How Spark Processes the Jobs
+The Spark UI was used to observe how Spark executes the jobs in this workflow. Two types of jobs were examined: the annotation pipeline and the stylometric analysis.
+
+![](plots/spark_dag.png)
+*Figure 5.1.1: DAG visualization for Stage 33 — Parquet write operation.*
+
+Figure 5.1.1 shows the DAG for Stage 33, which corresponds to the Parquet write operation during annotation. The DAG shows a linear sequence of six steps: 
+parallelize → mapPartitions → map → mapPartitions → WholeStageCodegen → WriteFiles. T
+here are no shuffle boundaries in this stage. This means Spark completed the entire write operation within a single stage without moving data between partitions.
+
+![](plots/spark_stage_details.png)
+*Figure 5.1.2: Stage 38 details — NLP annotation task.*
+
+Figure 5.1.2 shows the details for Stage 38, which corresponds to the NLP annotation task. The stage ran 4 tasks. Each task took between 39 and 41 seconds. The GC time was 4 seconds per task, which represents approximately 10% of the total task duration. This indicates that the JVM garbage collector was active during processing, which is consistent with the 1 GB heap limit set for this machine.
+
+## 5.2 Critical Shuffle Identification
+
+A shuffle occurs when Spark needs to redistribute data across partitions. This happens during operations such as groupBy and join. Two shuffle operations were observed and compared.
+
+![](plots/shuffle.png)
+*Figure 5.2.1: Exchange node for Zipf analysis — 489,208 shuffle records, 8.3 MiB.*
+
+Figure 5.2.1 shows the Exchange node for the Zipf analysis. This operation computes word frequencies across all novels using groupBy("book", "word").count(). It produced 489,208 shuffle records and wrote 8.3 MiB of shuffle data. The total data size processed was 26.0 MiB. This is the largest shuffle in the entire workflow. It is large because every unique word in every novel must be collected and counted, which requires moving all token data across partitions.
+
+![](plots/exchange_small.png)
+*Figure 5.2.2: Exchange node for book-level aggregation — 82 shuffle records.*
+
+Figure 5.2.2 shows the Exchange node for a simpler aggregation using groupBy("book"). This operation produced only 82 shuffle records. The difference between 489,208 records and 82 records shows how much the complexity of the groupBy key affects shuffle size. When the groupBy key has few unique values (29 books), the shuffle is very small. When the key has many unique values (all unique words across 29 novels), the shuffle is very large.
 
 ```{python}
 #| eval: false
