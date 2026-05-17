@@ -14,9 +14,9 @@ jupyter: python3
 
 My project analyzes a total of 35 19th century French novels. I divided these books into two main datasets:
 
-Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.
+- Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.
 
-Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. This group is used to apply the Kandel-Moles readability index, which was designed for French.
+- Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. This group is used to apply the Kandel-Moles readability index, which was designed for French.
 
 All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format.
 
