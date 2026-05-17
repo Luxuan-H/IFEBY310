@@ -6,16 +6,13 @@ format:
   html:
     toc: true
 jupyter: python3
-
 ---
 
 # 1. Data Description and Extraction Pipeline
 
 ## 1.1 Corpus Composition
 
-My project analyzes a total of 35 French novels from the 19th century. I divided these books into two main datasets:
-Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.
-Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. We use this group to find translation errors and test specific French algorithms.
+My project analyzes a total of 35 French novels from the 19th century. I divided these books into two main datasets: Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline. Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. We use this group to find translation errors and test specific French algorithms.
 
 All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format.
 
@@ -23,16 +20,16 @@ All texts were retrieved from **Project Gutenberg** in UTF‑8 plain text format
 
 The goal is to get only the main story text. We need to remove Gutenberg’s headers and legal notices. We did this by:
 
-1. Checking if the cleaned file already exists in `book_data/`.
-2. Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
-3. Extracting the text between the custom start and end tokens defined above.
-4. Saving the cleaned excerpt as `book_data/<book_title>.txt`.
+1.  Checking if the cleaned file already exists in `book_data/`.
+2.  Downloading the raw UTF‑8 file from Project Gutenberg once per unique URL (several short Hugo texts share the same URL).
+3.  Extracting the text between the custom start and end tokens defined above.
+4.  Saving the cleaned excerpt as `book_data/<book_title>.txt`.
 
 Running our code will create two folders:`book_data/`(containing the 29 English texts) and `book_data_fr/` (containing the 6 French texts).
 
 # 2. Load and Transform Pipeline
 
-I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small.  The loading step creates a DataFrame with two columns: book and text. We split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.
+I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. We split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.
 
 # 3. Annotation Pipeline
 
@@ -40,8 +37,7 @@ Annotation is performed with Spark NLP’s pretrained pipeline "explain_document
 
 It is multilingual (hence the ml suffix) and works out of the box for French.
 
-I launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. 
-For each novel, we read the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
+I launch Spark through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, we read the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
 
 # 4. Stylometric Analysis
 
@@ -54,6 +50,7 @@ Two readability formulas were applied. For the English translations, the Flesch-
 ```{=html}
 <iframe src="plots/readability_unified.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.1.1: Flesch-Kincaid Readability (English Translations).*
 
 ![](plots/FkScores.png)
@@ -65,9 +62,11 @@ Both Realist and Romantic novels appear throughout the full range of scores. The
 ```{=html}
 <iframe src="plots/kandel_moles_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.1.2: Kandel-Moles Readability (French Originals).*
 
 ![](plots/KMscores.png)
+
 *Table 4.1.2: KM Readability Scores for the 6 French originals.*
 
 The KM scores for the French originals are much more tightly grouped, ranging from 84.73 (germinal_fr) to 89.43 (nana_fr). Both Realist and Romantic novels cluster closely between 84 and 90. There is no clear difference between the two groups in the French data.
@@ -81,6 +80,7 @@ A sliding window approach was used to track how readability changes throughout e
 ```{=html}
 <iframe src="plots/sliding_window_ws500.html" width="100%" height="450px" style="border:none;"></iframe>
 ```
+
 *Figure 4.2.1: Sliding Window Readability 500(English Translations).*
 
 With a window size of 500 (Figure 4.2.1), the scores are very unstable. Most novels fluctuate between 0 and 100. Les Misérables shows two extreme negative spikes, dropping to approximately -200 at the 380k and 650k token positions. A window size of 500 is too small for stable readability measurement.
@@ -88,6 +88,7 @@ With a window size of 500 (Figure 4.2.1), the scores are very unstable. Most nov
 ```{=html}
 <iframe src="plots/sliding_window_ws2000.html" width="100%" height="450px" style="border:none;"></iframe>
 ```
+
 *Figure 4.2.2: Sliding Window Readability 2000(English Translations).*
 
 With a window size of 2000 (Figure 4.2.2), the scores are more stable. Most novels stay between 60 and 90. Notre-Dame shows a sharp drop to approximately 20 near the 100k token position. Les Misérables shows a drop to approximately 35 near the 380k token position. These drops correspond to specific chapters where sentences become very long.
@@ -95,6 +96,7 @@ With a window size of 2000 (Figure 4.2.2), the scores are more stable. Most nove
 ```{=html}
 <iframe src="plots/sliding_window_fr.html" width="100%" height="450px" style="border:none;"></iframe>
 ```
+
 *Figure 4.2.3: Sliding Window Readability (French Originals).*
 
 The French originals (Figure 4.2.3) show similar local volatility. Scores fluctuate between 75 and 100 for most books. Notre-Dame_fr shows two clear drops, one near 60k tokens dropping to approximately 48, and another near 100k tokens. The fact that Notre-Dame shows drops at similar narrative positions in both the English and French versions suggests these complexity shifts are a feature of the original text structure, not a translation effect.
@@ -106,30 +108,33 @@ Word frequencies were counted for each novel and ranked from most frequent to le
 ```{=html}
 <iframe src="plots/zipf.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.3.1: Zipf Distribution (English Translations).*
 
-All 29 English novels follow a power-law distribution that runs parallel to the ideal slope line (Figure 4.3.1). The curves are stratified by text length. Les Misérables extends furthest to the right (reaching rank ~10k), reflecting its large vocabulary size. Claude Gueux ends earliest (around rank ~1k), reflecting its short length. No curve deviates significantly from the parallel pattern.
+All 29 English novels follow a power-law distribution that runs parallel to the ideal slope line (Figure 4.3.1). The curves are stratified by text length. Les Misérables extends furthest to the right (reaching rank \~10k), reflecting its large vocabulary size. Claude Gueux ends earliest (around rank \~1k), reflecting its short length. No curve deviates significantly from the parallel pattern.
 
 ```{=html}
 <iframe src="plots/zipf_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.3.2: Zipf Distribution (French Originals).*
 
-The 6 French originals (Figure 4.3.2) show the same behavior. All curves are parallel and close together, following the ideal slope closely. The French curves are more tightly grouped than the English ones, with less vertical spread between books.
-In both datasets, the rank-frequency relationship is consistent across all books regardless of author or literary movement. This confirms that Zipf's Law holds across both languages and both literary schools in this corpus.
+The 6 French originals (Figure 4.3.2) show the same behavior. All curves are parallel and close together, following the ideal slope closely. The French curves are more tightly grouped than the English ones, with less vertical spread between books. In both datasets, the rank-frequency relationship is consistent across all books regardless of author or literary movement. This confirms that Zipf's Law holds across both languages and both literary schools in this corpus.
 
-## 4.4  Dialogue and Narration Analysis
+## 4.4 Dialogue and Narration Analysis
 
 Sentences were classified as dialogue or narration using different rules for each language. For the English texts, a sentence was marked as dialogue if it contained a " or ' character. For the French texts, a sentence was marked as dialogue if it contained « or », or if it started with — or -.
 
 ```{=html}
 <iframe src="plots/dialogue.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.4.1:Average Sentence Length — Dialogue vs Narration (English Translations).*
 
 ```{=html}
 <iframe src="plots/dialogue_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.4.2:Average Sentence Length — Dialogue vs Narration (French Originals).*
 
 In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. In natural language, dialogue is usually shorter than narration. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase. This noise in the classification inflates the average dialogue sentence length.
@@ -139,30 +144,30 @@ In the French data, the pattern is reversed. Dialogue sentences are shorter than
 ```{=html}
 <iframe src="plots/dialogue_readability_en.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.4.3: Flesch-Kincaid Readability of Pure Dialogue (English Translations).*
 
 ```{=html}
 <iframe src="plots/dialogue_readability_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
+
 *Figure 4.4.4: Readability of Pure Dialogue (French Originals).*
 
-The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above.
-The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).
+The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above. The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).
 
 # 5.Experience with Spark and Big Data File Formats
 
 ## 5.1 How Spark Processes the Jobs
+
 The Spark UI was used to observe how Spark executes the jobs in this workflow. Two types of jobs were examined: the annotation pipeline and the stylometric analysis.
 
 ![](plots/spark_dag.png)
+
 *Figure 5.1.1: DAG visualization for Stage 33 — Parquet write operation.*
 
-Figure 5.1.1 shows the DAG for Stage 33, which corresponds to the Parquet write operation during annotation. The DAG shows a linear sequence of six steps: 
-parallelize → mapPartitions → map → mapPartitions → WholeStageCodegen → WriteFiles. T
-here are no shuffle boundaries in this stage. This means Spark completed the entire write operation within a single stage without moving data between partitions.
+Figure 5.1.1 shows the DAG for Stage 33, which corresponds to the Parquet write operation during annotation. The DAG shows a linear sequence of six steps: parallelize → mapPartitions → map → mapPartitions → WholeStageCodegen → WriteFiles. T here are no shuffle boundaries in this stage. This means Spark completed the entire write operation within a single stage without moving data between partitions.
 
-![](plots/spark_stage_details.png)
-*Figure 5.1.2: Stage 38 details — NLP annotation task.*
+![](plots/spark_stage_details.png) *Figure 5.1.2: Stage 38 details — NLP annotation task.*
 
 Figure 5.1.2 shows the details for Stage 38, which corresponds to the NLP annotation task. The stage ran 4 tasks. Each task took between 39 and 41 seconds. The GC time was 4 seconds per task, which represents approximately 10% of the total task duration. This indicates that the JVM garbage collector was active during processing, which is consistent with the 1 GB heap limit set for this machine.
 
@@ -171,11 +176,13 @@ Figure 5.1.2 shows the details for Stage 38, which corresponds to the NLP annota
 A shuffle occurs when Spark needs to redistribute data across partitions. This happens during operations such as groupBy and join. Two shuffle operations were observed and compared.
 
 ![](plots/shuffle.png)
+
 *Figure 5.2.1: Exchange node for Zipf analysis — 489,208 shuffle records, 8.3 MiB.*
 
 Figure 5.2.1 shows the Exchange node for the Zipf analysis. This operation computes word frequencies across all novels using groupBy("book", "word").count(). It produced 489,208 shuffle records and wrote 8.3 MiB of shuffle data. The total data size processed was 26.0 MiB. This is the largest shuffle in the entire workflow. It is large because every unique word in every novel must be collected and counted, which requires moving all token data across partitions.
 
-![](plots/exchange_small.png)
+![](plots/exchange_small.png){width="590"}
+
 *Figure 5.2.2: Exchange node for book-level aggregation — 82 shuffle records.*
 
 Figure 5.2.2 shows the Exchange node for a simpler aggregation using groupBy("book"). This operation produced only 82 shuffle records. The difference between 489,208 records and 82 records shows how much the complexity of the groupBy key affects shuffle size. When the groupBy key has few unique values (29 books), the shuffle is very small. When the key has many unique values (all unique words across 29 novels), the shuffle is very large.
