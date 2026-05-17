@@ -8,3 +8,5 @@ results/
 results_fr/
 book_data/
 book_data_fr/
+*.quarto_ipynb*
+*.qmd.save
