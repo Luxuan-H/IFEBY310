@@ -3,4 +3,8 @@
 **/*.quarto_ipynb
 /book_data/*
 /results/*
-/venv/
+/venv/format_test/
+results/
+results_fr/
+book_data/
+book_data_fr/
