@@ -165,7 +165,7 @@ The FK readability scores for English dialogue (Figure 4.4.3) show almost no dif
 
 The Spark UI was used to observe how Spark executes the jobs in this workflow. Two types of jobs were examined: the annotation pipeline and the stylometric analysis.
 
-![](plots/spark_dag.png)
+![](plots/spark_dag.png){width="429"}
 
 *Figure 5.1.1: DAG visualization for Stage 33 — Parquet write operation.*
 
@@ -190,6 +190,52 @@ Figure 5.2.1 shows the Exchange node for the Zipf analysis. This operation compu
 *Figure 5.2.2: Exchange node for book-level aggregation — 82 shuffle records.*
 
 Figure 5.2.2 shows the Exchange node for a simpler aggregation using groupBy("book"). This operation produced only 82 shuffle records. The difference between 489,208 records and 82 records shows how much the complexity of the groupBy key affects shuffle size. When the groupBy key has few unique values (29 books), the shuffle is very small. When the key has many unique values (all unique words across 29 novels), the shuffle is very large.
+
+## 5.3 Shuffle Mitigation Strategies
+
+Two strategies were applied to reduce shuffle overhead in this workflow. Strategy 1: Reducing shuffle partitions By default, Spark uses 200 partitions for shuffle operations. On a single machine with limited memory, this creates 200 tasks that each consume JVM overhead even when most partitions are empty. The following configuration was applied at the start of every Spark session: python spark.conf.set("spark.sql.shuffle.partitions", "1")
+
+This setting was chosen because the workflow runs in local mode on a single machine. With only one partition, Spark does not need to manage multiple empty partition files. However, no timing comparison between 200 partitions and 1 partition was recorded during this project. The impact of this setting cannot be quantified from the available data.
+
+Strategy 2: Filtering before shuffling In the Zipf pipeline, short tokens were removed before the groupBy operation:
+
+python words_df.filter(F.length("word") \> 1).groupBy("book", "word").count()
+
+This reduces the number of records entering the shuffle stage. Punctuation marks and single characters are excluded from the word count, which decreases both the shuffle size and memory pressure during aggregation.
+
+## 5.4 Impact of Caching
+
+A cache experiment was performed on the annotated \<<Germinal>\> dataset. The same two aggregations (word frequency count and sentence count) were run twice: once without caching and once after calling .cache().
+
+Configuration Execution Time
+
+Without cache 7.46s
+
+With cache 1.84s
+
+Speedup 4.05x
+
+Without caching, Spark reads the Parquet file from disk and recomputes all transformations for every action. With caching, the DataFrame is stored in memory after the first computation. Subsequent actions reuse the in-memory data without any disk I/O. This produced a speedup of 4.05x on a single novel. This experiment was performed on one novel only due to memory constraints. The machine has 3.7 GB of total RAM and a 1 GB JVM heap. Caching the full 29-novel corpus would likely cause memory pressure and trigger GC pauses. For this reason, caching was not applied to the full corpus in this workflow. The .persist() and .checkpoint() methods were not tested due to the same memory constraints.
+
+## 5.5 File Format Comparison
+
+The annotated DataFrame for \<<Germinal>\> was written and read back in three formats. CSV was not tested because it does not support nested data types such as the ARRAY\<STRUCT\<...\>\> columns produced by Spark NLP. Attempting to write the annotated DataFrame to CSV produced the following error:
+
+"The CSV datasource doesn't support the column document of the type ARRAY\<STRUCT\<...\>\>"
+
+This error is not a configuration issue. It is a fundamental limitation of the CSV format, which cannot represent hierarchical data structures. The results for the three supported formats are shown below.
+
+![](plots/parquet.png)
+
+*Figure 5.5.1: Terminal output for parquet write experiment.*
+
+![](plots/json_orc.png)
+
+*Figure 5.5.2: Terminal output for orc and json write experiments.*
+
+Parquet has the best balance between write time and read time. It writes in 17.78 seconds and reads in 1.22 seconds. ORC produces the smallest file at 6.343 MB, which is 31% smaller than Parquet. However, ORC takes 30.53 seconds to write, which is 71% slower than Parquet. JSON produces the largest file at 127.338 MB, which is 13.8 times larger than Parquet. Its read time of 7.25 seconds is also 5.9 times slower than Parquet.
+
+These results reflect the fundamental differences between the formats. JSON stores data as human-readable text with no compression, which explains its large file size and slow read time. ORC uses aggressive column-level compression, which explains its small file size but slower write time. Parquet uses columnar storage with moderate compression, which gives it fast read times because Spark can skip columns that are not needed for a query. For these reasons, Parquet was chosen as the primary storage format in this project. It supports nested data types, offers fast read times for repeated analysis, and is natively supported by Spark NLP.
 
 ```{python}
 #| eval: false
