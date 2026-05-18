@@ -62,17 +62,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </style>
 
 
-<script src="bigdata_files/libs/clipboard/clipboard.min.js"></script>
-<script src="bigdata_files/libs/quarto-html/quarto.js" type="module"></script>
-<script src="bigdata_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="bigdata_files/libs/quarto-html/popper.min.js"></script>
-<script src="bigdata_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="bigdata_files/libs/quarto-html/anchor.min.js"></script>
-<link href="bigdata_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="bigdata_files/libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="bigdata_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="bigdata_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="bigdata_files/libs/bootstrap/bootstrap-c684bb29036a700c930bd92ced245daa.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="Project_Report_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Project_Report_files/libs/quarto-html/quarto.js" type="module"></script>
+<script src="Project_Report_files/libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="Project_Report_files/libs/quarto-html/popper.min.js"></script>
+<script src="Project_Report_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Project_Report_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Project_Report_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Project_Report_files/libs/quarto-html/quarto-syntax-highlighting-845c23b38eaddc0f92fda52bfe77a8c8.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Project_Report_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Project_Report_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Project_Report_files/libs/bootstrap/bootstrap-c684bb29036a700c930bd92ced245daa.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
 
 </head>
@@ -98,6 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#readability-volatility-over-sliding-windows" id="toc-readability-volatility-over-sliding-windows" class="nav-link" data-scroll-target="#readability-volatility-over-sliding-windows">4.2 Readability Volatility over Sliding Windows</a></li>
   <li><a href="#vocabulary-distribution-and-zipfs-law" id="toc-vocabulary-distribution-and-zipfs-law" class="nav-link" data-scroll-target="#vocabulary-distribution-and-zipfs-law">4.3 Vocabulary Distribution and Zipf’s Law</a></li>
   <li><a href="#dialogue-and-narration-analysis" id="toc-dialogue-and-narration-analysis" class="nav-link" data-scroll-target="#dialogue-and-narration-analysis">4.4 Dialogue and Narration Analysis</a></li>
+  <li><a href="#summary" id="toc-summary" class="nav-link" data-scroll-target="#summary">4.5 Summary</a></li>
   </ul></li>
   <li><a href="#experience-with-spark-and-big-data-file-formats" id="toc-experience-with-spark-and-big-data-file-formats" class="nav-link" data-scroll-target="#experience-with-spark-and-big-data-file-formats">5.Experience with Spark and Big Data File Formats</a>
   <ul class="collapse">
@@ -116,7 +117,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Stylometric Analysis of 19th Century French Literature</h1>
-<p class="subtitle lead">A Case Study of Hugo and Zola using Spark NLP</p>
+<p class="subtitle lead">Looking at Victor Hugo and Émile Zola using Spark NLP</p>
 </div>
 
 
@@ -143,7 +144,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h1>1. Data Description and Extraction Pipeline</h1>
 <section id="corpus-composition" class="level2">
 <h2 class="anchored" data-anchor-id="corpus-composition">1.1 Corpus Composition</h2>
-<p>My project analyzes a total of 35 19th century French novels. I divided these books into two main datasets:</p>
+<p>My project analyzes a total of 35 French novels from 19th century. I divided these books into two main datasets:</p>
 <ul>
 <li><p>Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.</p></li>
 <li><p>Dataset 2: French Originals (6 books). This is a smaller control group. It includes 3 books by Zola and 3 books by Hugo. This group is used to apply the Kandel-Moles readability index, which was designed for French.</p></li>
@@ -164,17 +165,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="load-and-transform-pipeline" class="level1">
 <h1>2. Load and Transform Pipeline</h1>
-<p>I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. We split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.</p>
+<p>I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. I split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.</p>
 <p>The annotated results are saved to Parquet format. Parquet was chosen because it supports nested data types produced by Spark NLP, offers fast read times, and compresses data efficiently.</p>
 </section>
 <section id="annotation-pipeline" class="level1">
 <h1>3. Annotation Pipeline</h1>
-<p>Annotation is performed with Spark NLP’s pretrained pipeline “explain_document_ml”. This model provides sentence detection, tokenization, lemmatization, and part-of-speech tagging. It is multilingual (hence the ml suffix) and works out of the box for French.</p>
-<p>Spark is launched through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, the pipeline reads the cleaned text from book_data/. Split it into 3000‑word chunks. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.</p>
+<p>Annotation is performed with Spark NLP’s pretrained pipeline <code>explain_document_ml</code>. This model provides sentence detection, tokenization, lemmatization, and part-of-speech tagging. It is multilingual (hence the ml suffix) and works out of the box for French.</p>
+<p>Spark is launched through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, the pipeline reads the cleaned text from <code>book_data/</code>. Split it into 3000‑word chunks, otherwise Spark would crash on my computer. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.</p>
 </section>
 <section id="stylometric-analysis" class="level1">
 <h1>4. Stylometric Analysis</h1>
-<p>This section addresses four analytical questions. First, do Realist and Romantic novels differ in overall text complexity? Second, how stable are readability scores across the length of a novel? Third, do all novels follow Zipf’s Law regardless of author or literary school? Fourth, is dialogue structurally different from narration in the two corpora? These questions were chosen because they can be answered directly from token and sentence-level annotations produced by Spark NLP</p>
+<p>This section addresses four questions. First, do Realist and Romantic novels differ in overall text complexity? Second, how stable are readability scores across the length of a novel? Third, do all novels follow Zipf’s Law regardless of author or literary school? Fourth, is dialogue structurally different from narration in the two corpora? These questions were chosen because they can be answered directly from token and sentence-level annotations produced by Spark NLP</p>
 <section id="global-readability-comparison" class="level2">
 <h2 class="anchored" data-anchor-id="global-readability-comparison">4.1 Global Readability Comparison</h2>
 <p>Two readability formulas were applied. For the English translations, the Flesch-Kincaid (FK) formula was used. For the French originals, the Kandel-Moles (KM) formula was used. Both formulas use sentence length and syllable counts to produce a score. A higher score means the text is easier to read.</p>
@@ -182,7 +183,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p><em>Figure 4.1.1: Flesch-Kincaid Readability (English Translations).</em></p>
 <p><img src="plots/FkScores.png" class="img-fluid"></p>
 <p><em>Table 4.1.1: FK Readability Scores for all 29 English novels, ordered from lowest to highest.</em></p>
-<p>Both Realist and Romantic novels appear throughout the full range of scores. There is no clear separation between the two literary schools. Some Realist novels score very low, such as l_argent at 64.63, while others score high, such as la_faute at 79.28. The same pattern appears for Romantic novels: bug_jargal scores 72.39 while le_dernier_jour scores 81.91.</p>
+<p>Both Realist and Romantic novels appear throughout the full range of scores. There is no clear separation between the two literary schools. Some Realist novels score very low, such as l_argent at 64.63, while others score high, such as la_faute at 79.28. The same pattern appears for Romantic novels: bug_jargal scores 72.39 while le_dernier_jour scores 81.91. More than 80 means it is readable by 11-12 years old students, while 64 is for 13-15 years old (higher means easier to read).</p>
 <iframe src="plots/kandel_moles_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.1.2: Kandel-Moles Readability (French Originals).</em></p>
 <p><img src="plots/KMscores.png" class="img-fluid"></p>
@@ -218,7 +219,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Sentences were classified as dialogue or narration using different rules for each language. For the English texts, a sentence was marked as dialogue if it contained a ” or ’ character. For the French texts, a sentence was marked as dialogue if it contained « or », or if it started with — or -.</p>
 <iframe src="plots/dialogue.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.4.1:Average Sentence Length — Dialogue vs Narration (English Translations).</em></p>
-<p>In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. In natural language, dialogue is usually shorter than narration. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase. This noise in the classification inflates the average dialogue sentence length.</p>
+<p>In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase.</p>
 <iframe src="plots/dialogue_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.4.2:Average Sentence Length — Dialogue vs Narration (French Originals).</em></p>
 <p>In the French data, the pattern is reversed. Dialogue sentences are shorter than narration sentences. For Realist novels, narration averages 79.85 characters while dialogue averages 21.02 characters. For Romantic novels, narration averages 73.55 characters and dialogue averages 65.55 characters. This result is more consistent with natural language expectations. The French detection rules using «» and — are more precise and less likely to capture narration sentences by mistake.</p>
@@ -227,6 +228,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <iframe src="plots/dialogue_readability_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 <p><em>Figure 4.4.4: Readability of Pure Dialogue (French Originals).</em></p>
 <p>The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above. The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).</p>
+</section>
+<section id="summary" class="level2">
+<h2 class="anchored" data-anchor-id="summary">4.5 Summary</h2>
+<p>Four analyses were performed on this corpus. The results are summarized below.</p>
+<p>The readability analysis showed that FK scores for the English translations range widely from 64.63 to 81.91, while KM scores for the French originals cluster tightly between 84.46 and 89.45. This difference suggests that translation introduces variance that is not present in the original texts.</p>
+<p>The sliding window analysis showed that readability indices are not stable within a single novel. A window of 500 words is too small and produces unreliable scores. A window of 2000 words is more stable but still shows large local drops.</p>
+<p>The Zipf analysis showed that all novels in both languages follow the same power-law distribution regardless of author or literary movement.</p>
+<p>The dialogue analysis showed that the quality of the segmentation method directly affects the results. The French detection rules produced more precise results than the English rules. In the French data, Realist dialogue averages 21 characters per sentence compared to 65 characters for Romantic dialogue.</p>
 </section>
 </section>
 <section id="experience-with-spark-and-big-data-file-formats" class="level1">
@@ -258,11 +267,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Two strategies were applied to reduce shuffle overhead in this workflow.</p>
 <p>Strategy 1: Reducing shuffle partitions By default, Spark uses 200 partitions for shuffle operations. On a single machine with limited memory, this creates 200 tasks that each consume JVM overhead even when most partitions are empty. The following configuration was applied at the start of every Spark session:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>spark.conf.<span class="bu">set</span>(<span class="st">"spark.sql.shuffle.partitions"</span>, <span class="st">"1"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This setting was chosen because the workflow runs in local mode on a single machine. With only one partition, Spark does not need to manage multiple empty partition files. However, no timing comparison between 200 partitions and 1 partition was recorded during this project. The impact of this setting cannot be quantified from the available data.</p>
+<p>A timing experiment was run on the Germinal dataset. Reducing partitions from 200 to 1 reduced execution time from 5.80 seconds to 1.48 seconds, a speedup of 3.9x. On a single machine in local mode, most of the 200 partitions are empty. Managing these empty partitions creates unnecessary overhead. Setting partitions to 1 removes this overhead.</p>
 <p>Strategy 2: Filtering before shuffling</p>
-<p>In the Zipf pipeline, short tokens were removed before the groupBy operation:</p>
+<p>In the Zipf pipeline, short tokens were removed before the <code>groupBy</code> operation:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>words_df.<span class="bu">filter</span>(F.length(<span class="st">"word"</span>) \<span class="op">&gt;</span> <span class="dv">1</span>).groupBy(<span class="st">"book"</span>, <span class="st">"word"</span>).count()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This reduces the number of records entering the shuffle stage. Punctuation marks and single characters are excluded from the word count, which decreases both the shuffle size and memory pressure during aggregation.</p>
+<p>A timing experiment was run on the same dataset. The results are shown in the figure below.</p>
+<p><img src="plots/5_2.png" class="img-fluid"> <em>Figure 5.3.1: Timing results for both mitigation experiments on the Germinal dataset.</em></p>
+<p>The result was unexpected. Filtering before groupBy (1.19s) was slightly slower than without filtering (0.93s). The overhead of the filter operation itself outweighed the benefit of reducing the number of records entering the shuffle. This strategy did not improve performance on this dataset.</p>
 </section>
 <section id="impact-of-caching" class="level2">
 <h2 class="anchored" data-anchor-id="impact-of-caching">5.4 Impact of Caching</h2>
@@ -293,7 +304,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="appendix" class="level1">
 <h1>Appendix</h1>
-<div id="6dbb27d2" class="cell" data-execution_count="1">
+<div id="32dfe8ca" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> sys</span>

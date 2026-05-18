@@ -1,6 +1,6 @@
 ---
 title: "Stylometric Analysis of 19th Century French Literature"
-subtitle: "A Case Study of Victor Hugo and Émile Zola using Spark NLP"
+subtitle: "Looking at Victor Hugo and Émile Zola using Spark NLP"
 author: "Luxuan HUANG <br> M1 Logos-Maths <br>"
 format:
   html:
@@ -33,15 +33,15 @@ Running our code will create two folders:`book_data/`(containing the 29 English 
 
 # 2. Load and Transform Pipeline
 
-I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. We split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.
+I have a 4 GB RAM limit. To avoid out-of-memory errors, each novel is split into chunks of 3000 words. This keeps individual rows small. The loading step creates a DataFrame with two columns: book and text. I split the text by whitespace. The size of 3000 words provides enough context for the NLP models to work well. We process the books one by one instead of loading all books at once. This fits our memory limits.
 
 The annotated results are saved to Parquet format. Parquet was chosen because it supports nested data types produced by Spark NLP, offers fast read times, and compresses data efficiently.
 
 # 3. Annotation Pipeline
 
-Annotation is performed with Spark NLP’s pretrained pipeline "explain_document_ml". This model provides sentence detection, tokenization, lemmatization, and part-of-speech tagging. It is multilingual (hence the ml suffix) and works out of the box for French.
+Annotation is performed with Spark NLP’s pretrained pipeline `explain_document_ml`. This model provides sentence detection, tokenization, lemmatization, and part-of-speech tagging. It is multilingual (hence the ml suffix) and works out of the box for French.
 
-Spark is launched through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, the pipeline reads the cleaned text from book_data/. Split it into 3000‑word chunks, otherwise Spark would crash on my computer. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
+Spark is launched through sparknlp.start() with a heap limit of 1 GB and set spark.sql.shuffle.partitions to 1 to minimize shuffle overhead on a single‑machine setup. For each novel, the pipeline reads the cleaned text from `book_data/`. Split it into 3000‑word chunks, otherwise Spark would crash on my computer. Create a small DataFrame with one column text. Apply the pretrained pipeline. Write the resulting annotated DataFrame to Parquet (overwrite mode). Discard the data and move to the next book.
 
 # 4. Stylometric Analysis
 
@@ -159,6 +159,18 @@ In the French data, the pattern is reversed. Dialogue sentences are shorter than
 
 The FK readability scores for English dialogue (Figure 4.4.3) show almost no difference between Realist (70) and Romantic (71) schools. This flat result is consistent with the noisy classification described above. The KM readability scores for French dialogue (Figure 4.4.4) show a clearer difference. Realist dialogue scores approximately 104 and Romantic dialogue scores approximately 97. This 7-point gap suggests that in the original French texts, Realist dialogue uses simpler vocabulary and shorter words than Romantic dialogue. However, this result should be interpreted carefully given the small size of the French corpus (only 6 books).
 
+## 4.5 Summary
+
+Four analyses were performed on this corpus. The results are summarized below.
+
+The readability analysis showed that FK scores for the English translations range widely from 64.63 to 81.91, while KM scores for the French originals cluster tightly between 84.46 and 89.45. This difference suggests that translation introduces variance that is not present in the original texts.
+
+The sliding window analysis showed that readability indices are not stable within a single novel. A window of 500 words is too small and produces unreliable scores. A window of 2000 words is more stable but still shows large local drops. 
+
+The Zipf analysis showed that all novels in both languages follow the same power-law distribution regardless of author or literary movement. 
+
+The dialogue analysis showed that the quality of the segmentation method directly affects the results. The French detection rules produced more precise results than the English rules. In the French data, Realist dialogue averages 21 characters per sentence compared to 65 characters for Romantic dialogue.
+
 # 5.Experience with Spark and Big Data File Formats
 
 ## 5.1 How Spark Processes the Jobs
@@ -207,17 +219,21 @@ Strategy 1: Reducing shuffle partitions By default, Spark uses 200 partitions fo
 spark.conf.set("spark.sql.shuffle.partitions", "1")
 ```
 
-This setting was chosen because the workflow runs in local mode on a single machine. With only one partition, Spark does not need to manage multiple empty partition files. However, no timing comparison between 200 partitions and 1 partition was recorded during this project. The impact of this setting cannot be quantified from the available data.
+A timing experiment was run on the Germinal dataset. Reducing partitions from 200 to 1 reduced execution time from 5.80 seconds to 1.48 seconds, a speedup of 3.9x. On a single machine in local mode, most of the 200 partitions are empty. Managing these empty partitions creates unnecessary overhead. Setting partitions to 1 removes this overhead.
 
 Strategy 2: Filtering before shuffling
 
-In the Zipf pipeline, short tokens were removed before the groupBy operation:
+In the Zipf pipeline, short tokens were removed before the `groupBy` operation:
 
 ``` python
 words_df.filter(F.length("word") \> 1).groupBy("book", "word").count()
 ```
 
-This reduces the number of records entering the shuffle stage. Punctuation marks and single characters are excluded from the word count, which decreases both the shuffle size and memory pressure during aggregation.
+A timing experiment was run on the same dataset. The results are shown in the figure below.
+
+![](plots/5_2.png) *Figure 5.3.1: Timing results for both mitigation experiments on the Germinal dataset.*
+
+The result was unexpected. Filtering before groupBy (1.19s) was slightly slower than without filtering (0.93s). The overhead of the filter operation itself outweighed the benefit of reducing the number of records entering the shuffle. This strategy did not improve performance on this dataset.
 
 ## 5.4 Impact of Caching
 
