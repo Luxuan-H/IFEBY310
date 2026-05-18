@@ -1,6 +1,6 @@
 ---
-title: "Stylometric Analysis of 19th Century French Novels with Spark NLP"
-subtitle: "Project of IFEBY310 Big Data Technologies"
+title: "Stylometric Analysis of 19th Century French Literature"
+subtitle: "A Case Study of Victor Hugo and Émile Zola using Spark NLP"
 author: "Luxuan HUANG <br> M1 Logos-Maths <br>"
 format:
   html:
@@ -12,7 +12,7 @@ jupyter: python3
 
 ## 1.1 Corpus Composition
 
-My project analyzes a total of 35 19th century French novels. I divided these books into two main datasets:
+My project analyzes a total of 35 French novels from 19th century. I divided these books into two main datasets:
 
 - Dataset 1: English Translations (29 books). This includes 19 Realist novels by Émile Zola and 10 Romantic works by Victor Hugo. We use this large group for our main data pipeline.
 
@@ -135,13 +135,13 @@ Sentences were classified as dialogue or narration using different rules for eac
 
 *Figure 4.4.1:Average Sentence Length — Dialogue vs Narration (English Translations).*
 
+In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. In natural language, dialogue is usually shorter than narration. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase. This noise in the classification inflates the average dialogue sentence length.
+
 ```{=html}
 <iframe src="plots/dialogue_fr.html" width="100%" height="400px" style="border:none;"></iframe>
 ```
 
 *Figure 4.4.2:Average Sentence Length — Dialogue vs Narration (French Originals).*
-
-In the English data, the detected dialogue sentences are longer than narration sentences. For Realist novels, the average dialogue sentence is 117.48 characters, while narration sentences average 96.16 characters. For Romantic novels, dialogue averages 105.30 characters and narration averages 79.11 characters. This result is unexpected. In natural language, dialogue is usually shorter than narration. The most likely explanation is that the English detection rule, which flags any sentence containing a quotation mark, also captures long narration sentences that contain a quoted word or short phrase. This noise in the classification inflates the average dialogue sentence length.
 
 In the French data, the pattern is reversed. Dialogue sentences are shorter than narration sentences. For Realist novels, narration averages 79.85 characters while dialogue averages 21.02 characters. For Romantic novels, narration averages 73.55 characters and dialogue averages 65.55 characters. This result is more consistent with natural language expectations. The French detection rules using «» and — are more precise and less likely to capture narration sentences by mistake.
 
@@ -163,67 +163,89 @@ The FK readability scores for English dialogue (Figure 4.4.3) show almost no dif
 
 ## 5.1 How Spark Processes the Jobs
 
-The Spark UI was used to observe how Spark executes the jobs in this workflow. Two types of jobs were examined: the annotation pipeline and the stylometric analysis.
+The Spark UI was used to observe how Spark executes the jobs in this workflow.
+
+Two types of jobs were examined: the annotation pipeline and the stylometric analysis.
 
 ![](plots/spark_dag.png){width="429"}
 
 *Figure 5.1.1: DAG visualization for Stage 33 — Parquet write operation.*
 
-Figure 5.1.1 shows the DAG for Stage 33, which corresponds to the Parquet write operation during annotation. The DAG shows a linear sequence of six steps: parallelize → mapPartitions → map → mapPartitions → WholeStageCodegen → WriteFiles. T here are no shuffle boundaries in this stage. This means Spark completed the entire write operation within a single stage without moving data between partitions.
+Figure 5.1.1 shows the DAG for Stage 33, which corresponds to the Parquet write operation during annotation. The DAG shows a linear sequence of six steps:
+
+parallelize → mapPartitions → map → mapPartitions → WholeStageCodegen → WriteFiles.
+
+There are no shuffle boundaries in this stage. This means Spark completed the entire write operation within a single stage without moving data between partitions.
 
 ![](plots/spark_stage_details.png) *Figure 5.1.2: Stage 38 details — NLP annotation task.*
 
-Figure 5.1.2 shows the details for Stage 38, which corresponds to the NLP annotation task. The stage ran 4 tasks. Each task took between 39 and 41 seconds. The GC time was 4 seconds per task, which represents approximately 10% of the total task duration. This indicates that the JVM garbage collector was active during processing, which is consistent with the 1 GB heap limit set for this machine.
+Figure 5.1.2 shows the details for Stage 38, the NLP annotation task. The stage ran 4 tasks. Each task took between 39 and 41 seconds. The garbage collection time was 4 seconds per task, which is about 10% of the total task duration. This shows that the JVM garbage collector was active during processing, which matches the 1 GB heap limit set for this machine.
 
 ## 5.2 Critical Shuffle Identification
 
-A shuffle occurs when Spark needs to redistribute data across partitions. This happens during operations such as groupBy and join. Two shuffle operations were observed and compared.
+A shuffle occurs when Spark needs to redistribute data across partitions. This happens during operations such as `groupBy` and `join`. Two shuffle operations were observed and compared in this workflow.
 
 ![](plots/shuffle.png)
 
 *Figure 5.2.1: Exchange node for Zipf analysis — 489,208 shuffle records, 8.3 MiB.*
 
-Figure 5.2.1 shows the Exchange node for the Zipf analysis. This operation computes word frequencies across all novels using groupBy("book", "word").count(). It produced 489,208 shuffle records and wrote 8.3 MiB of shuffle data. The total data size processed was 26.0 MiB. This is the largest shuffle in the entire workflow. It is large because every unique word in every novel must be collected and counted, which requires moving all token data across partitions.
+Figure 5.2.1 shows the Exchange node for the Zipf analysis. This operation computes word frequencies across all novels using `groupBy("book", "word").count()`. It produced 489,208 shuffle records and wrote 8.3 MiB of shuffle data. The total data size processed was 26.0 MiB. This is the largest shuffle in the entire workflow. It is large because every unique word in every novel must be collected and counted, which requires moving all token data across partitions.
 
 ![](plots/exchange_small.png){width="590"}
 
 *Figure 5.2.2: Exchange node for book-level aggregation — 82 shuffle records.*
 
-Figure 5.2.2 shows the Exchange node for a simpler aggregation using groupBy("book"). This operation produced only 82 shuffle records. The difference between 489,208 records and 82 records shows how much the complexity of the groupBy key affects shuffle size. When the groupBy key has few unique values (29 books), the shuffle is very small. When the key has many unique values (all unique words across 29 novels), the shuffle is very large.
+Figure 5.2.2 shows the Exchange node for a simpler aggregation using `groupBy("book")`. This operation produced only 82 shuffle records. The difference between 489,208 records and 82 records shows how much the complexity of the `groupBy` key affects shuffle size. When the `groupBy` key has few unique values (29 books), the shuffle is very small. When the key has many unique values (all unique words across 29 novels), the shuffle is very large.
 
 ## 5.3 Shuffle Mitigation Strategies
 
-Two strategies were applied to reduce shuffle overhead in this workflow. Strategy 1: Reducing shuffle partitions By default, Spark uses 200 partitions for shuffle operations. On a single machine with limited memory, this creates 200 tasks that each consume JVM overhead even when most partitions are empty. The following configuration was applied at the start of every Spark session: python spark.conf.set("spark.sql.shuffle.partitions", "1")
+Two strategies were applied to reduce shuffle overhead in this workflow.
+
+Strategy 1: Reducing shuffle partitions By default, Spark uses 200 partitions for shuffle operations. On a single machine with limited memory, this creates 200 tasks that each consume JVM overhead even when most partitions are empty. The following configuration was applied at the start of every Spark session:
+
+``` python
+spark.conf.set("spark.sql.shuffle.partitions", "1")
+```
 
 This setting was chosen because the workflow runs in local mode on a single machine. With only one partition, Spark does not need to manage multiple empty partition files. However, no timing comparison between 200 partitions and 1 partition was recorded during this project. The impact of this setting cannot be quantified from the available data.
 
-Strategy 2: Filtering before shuffling In the Zipf pipeline, short tokens were removed before the groupBy operation:
+Strategy 2: Filtering before shuffling
 
-python words_df.filter(F.length("word") \> 1).groupBy("book", "word").count()
+In the Zipf pipeline, short tokens were removed before the groupBy operation:
+
+``` python
+words_df.filter(F.length("word") \> 1).groupBy("book", "word").count()
+```
 
 This reduces the number of records entering the shuffle stage. Punctuation marks and single characters are excluded from the word count, which decreases both the shuffle size and memory pressure during aggregation.
 
 ## 5.4 Impact of Caching
 
-A cache experiment was performed on the annotated \<<Germinal>\> dataset. The same two aggregations (word frequency count and sentence count) were run twice: once without caching and once after calling .cache().
+A cache experiment was performed on the annotated \<<Germinal>\> dataset. The same two aggregations (word frequency count and sentence count) were run twice: once without caching and once after calling `.cache()`.
 
-Configuration Execution Time
+Configuration/Execution Time
 
-Without cache 7.46s
+Without cache: 7.46s
 
-With cache 1.84s
+With cache: 1.84s
 
-Speedup 4.05x
+Speedup: 4.05x
 
-Without caching, Spark reads the Parquet file from disk and recomputes all transformations for every action. With caching, the DataFrame is stored in memory after the first computation. Subsequent actions reuse the in-memory data without any disk I/O. This produced a speedup of 4.05x on a single novel. This experiment was performed on one novel only due to memory constraints. The machine has 3.7 GB of total RAM and a 1 GB JVM heap. Caching the full 29-novel corpus would likely cause memory pressure and trigger GC pauses. For this reason, caching was not applied to the full corpus in this workflow. The .persist() and .checkpoint() methods were not tested due to the same memory constraints.
+Without caching, Spark reads the Parquet file from disk and recomputes all transformations for every action. With caching, the DataFrame is stored in memory after the first computation. Subsequent actions reuse the in-memory data without any disk I/O. This produced a speedup of 4.05x on a single novel.
+
+This experiment was performed on one novel only due to memory constraints. The machine has 3.7 GB of total RAM and a 1 GB JVM heap. Caching the full 29-novel corpus would likely cause memory pressure and trigger GC pauses. For the same reason, caching was not applied to the full corpus in this workflow. The `.persist()` and `.checkpoint()` methods were not tested due to the same memory constraints.
 
 ## 5.5 File Format Comparison
 
-The annotated DataFrame for \<<Germinal>\> was written and read back in three formats. CSV was not tested because it does not support nested data types such as the ARRAY\<STRUCT\<...\>\> columns produced by Spark NLP. Attempting to write the annotated DataFrame to CSV produced the following error:
+The annotated DataFrame for Germinal was written and read back in three formats.
+
+CSV was not tested because it does not support nested data types such as the `ARRAY\<STRUCT\<...\>\>` columns produced by Spark NLP. Attempting to write the annotated DataFrame to CSV produced the following error:
 
 "The CSV datasource doesn't support the column document of the type ARRAY\<STRUCT\<...\>\>"
 
-This error is not a configuration issue. It is a fundamental limitation of the CSV format, which cannot represent hierarchical data structures. The results for the three supported formats are shown below.
+It is a limitation of the CSV format, which cannot represent hierarchical data structures.
+
+Thus the results for the other three supported formats are shown as below.
 
 ![](plots/parquet.png)
 
@@ -233,25 +255,56 @@ This error is not a configuration issue. It is a fundamental limitation of the C
 
 *Figure 5.5.2: Terminal output for orc and json write experiments.*
 
-Parquet has the best balance between write time and read time. It writes in 17.78 seconds and reads in 1.22 seconds. ORC produces the smallest file at 6.343 MB, which is 31% smaller than Parquet. However, ORC takes 30.53 seconds to write, which is 71% slower than Parquet. JSON produces the largest file at 127.338 MB, which is 13.8 times larger than Parquet. Its read time of 7.25 seconds is also 5.9 times slower than Parquet.
+Parquet has the best balance between write time and read time. It writes in 17.78 seconds and reads in 1.22 seconds.
 
-These results reflect the fundamental differences between the formats. JSON stores data as human-readable text with no compression, which explains its large file size and slow read time. ORC uses aggressive column-level compression, which explains its small file size but slower write time. Parquet uses columnar storage with moderate compression, which gives it fast read times because Spark can skip columns that are not needed for a query. For these reasons, Parquet was chosen as the primary storage format in this project. It supports nested data types, offers fast read times for repeated analysis, and is natively supported by Spark NLP.
+ORC produces the smallest file at 6.343 MB, which is 31% smaller than Parquet. However, ORC takes 30.53 seconds to write, which is 71% slower than Parquet.
+
+JSON produces the largest file at 127.338 MB, which is 13.8 times larger than Parquet. Its read time of 7.25 seconds is also 5.9 times slower than Parquet.
+
+These results reflect the differences between the formats. JSON stores data as human-readable text with no compression, which explains its large file size and slow read time. ORC uses aggressive column-level compression, which explains its small file size but slower write time. Parquet uses columnar storage with moderate compression, which gives it fast read times because Spark can skip columns that are not needed for a query. For these reasons, Parquet was chosen as the primary storage format in this project. It supports nested data types, offers fast read times for repeated analysis, and is natively supported by Spark NLP.
+
+# Appendix
 
 ```{python}
 #| eval: false
 #| code-fold: true
 
-import os.path
 import sys
-import requests
-import sparknlp
-import plotly.graph_objects as go
-from sparknlp.pretrained import PretrainedPipeline
-from pyspark.sql import SparkSession
+import subprocess
+import os
+import re
 
+# Third-party data and plotting packages
+import requests
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+# Spark and Spark NLP packages
+import sparknlp
+from sparknlp.pretrained import PretrainedPipeline
+from pyspark.sql import SparkSession, Window
+from pyspark.sql import functions as F
+from pyspark.sql.types import IntegerType, BooleanType
+
+required_packages = {
+    "requests": "requests",
+    "pandas": "pandas",
+    "plotly": "plotly",
+    "pyspark": "pyspark",
+    "sparknlp": "spark-nlp" 
+}
+
+for import_name, pip_name in required_packages.items():
+    try:
+        __import__(import_name)
+    except ImportError:
+        print(f"Package '{import_name}' not found. Auto-installing '{pip_name}'...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+        print(f"Successfully installed '{pip_name}'!")
 
 # =====================================================================
-# Book definitions: URL and start/end tokens for body extraction
+# 1、Book definitions: URL and start/end tokens for body extraction
 # =====================================================================
 
 # ---------- Zola (Realist) ---------
@@ -345,7 +398,7 @@ all_delimiters = {**zola_delimiters, **hugo_delimiters}
 
 
 # =====================================================================
-# Download and cleaning pipeline
+# 2、Download and cleaning pipeline
 # ====================================================================
 downloaded_raw_files = {}
 
@@ -390,15 +443,12 @@ for book_title, url in all_urls.items():
     with open(clean_path, "w", encoding="utf-8") as f:
         size = f.write(extracted)
     print(f"Saved {clean_path}  ({size} bytes)")
-```
-
-```{python}
-#| eval: false
-#| code-fold: true
 
 # =====================================================================
+# 3、Spark NLP Annotation Pipeline
+# =====================================================================
+
 # Helper function: split a text into word-based chunks
-# =====================================================================
 def split_text(text, chunk_size=3000):
     """
     Split a long string into a list of chunks,
@@ -410,9 +460,6 @@ def split_text(text, chunk_size=3000):
         chunks.append(" ".join(words[i:i+chunk_size]))
     return chunks
   
-# =====================================================================
-# Spark NLP Annotation Pipeline
-# =====================================================================
 # Stop any previous Spark session to avoid port conflicts
 existing = SparkSession.getActiveSession()
 if existing:
@@ -451,23 +498,12 @@ for book_title in all_urls:
 
 print("All 29 novels processed!")
 
-```
 
-```{python}
-#| eval: false
-#| code-fold: true
 
 # ============================================================
-# A.4 Stylometric Analysis (Unified English Corpus Optimized)
+# 4 Stylometric Analysis (Unified English Corpus Optimized)
 # ============================================================
-import os
-import re
-import sparknlp
-from pyspark.sql import SparkSession, functions as F, Window
-from pyspark.sql.types import IntegerType, BooleanType
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
+
 
 # ---------- Preparation: Literary School Definitions ----------
 # List of Zola's books to distinguish "Realist" from "Romantic"
@@ -514,14 +550,9 @@ def english_syllable_count(word):
     return max(1, len(matches))
 
 english_syllable_udf = F.udf(english_syllable_count, IntegerType())
-```
-
-```{python}
-#| eval: false
-#| code-fold: true
 
 # ============================================================
-# A.4.1 Readability Indices (Flesch-Kincaid Only)
+# 4.1 Readability Indices (Flesch-Kincaid Only)
 # ============================================================
 chunk_stats = annotated_df.select(
     "book",
@@ -632,14 +663,8 @@ fig_dialogue_fk = px.bar(
 fig_dialogue_fk.update_layout(template="plotly_white")
 fig_dialogue_fk.write_html("plots/dialogue_readability_en.html")
 
-```
-
-```{python}
-#| eval: false
-#| code-fold: true
-
 # ============================================================
-# A.4.2 Sliding Window Readability 
+# 4.2 Sliding Window Readability 
 # ============================================================
 def sliding_window_readability(book_name, window_size=500, step=250):
     tokens_df = annotated_df.filter(F.col("book") == book_name).select("token")
@@ -693,14 +718,9 @@ for ws in window_sizes:
     fig_sliding.update_layout(title=f"Sliding Window Flesch-Kincaid (Window = {ws})", template="plotly_white")
     fig_sliding.write_html(f"plots/sliding_window_ws{ws}.html")
     
-```
-
-```{python}
-#| eval: false
-#| code-fold: true
 
 # ============================================================
-# A.4.3 Zipf Distribution per Document 
+# 4.3 Zipf Distribution per Document 
 # ============================================================
 from pyspark.sql import Window, functions as F
 import plotly.express as px
@@ -750,14 +770,10 @@ if words_df:
         print(" plots/zipf.html")
     else:
         print("Warning: Empty Zipf data, plot not generated.")
-```
 
-```{python}
-#| eval: false
-#| code-fold: true
 
 # ============================================================
-# A.4.4 Dialogue vs. Narration Segmentation
+# 4.4 Dialogue vs. Narration Segmentation
 # ============================================================
 def is_dialogue(sentence_text):
     if sentence_text is None: return False
@@ -794,23 +810,10 @@ print("=== English Dialogue vs Narration ===")
 print(summary.to_string())
 
 print("All stylometric analyses complete!")
-```
 
-```{python}
-#| eval: false
-#| code-fold: true
 
-import os
-import re
-import requests
-import sparknlp
-from sparknlp.pretrained import PretrainedPipeline
-from pyspark.sql import SparkSession, functions as F, Window
-from pyspark.sql.types import IntegerType, BooleanType
-import plotly.express as px
-import plotly.graph_objects as go
-import pandas as pd
 
+# French original books
 # =====================================================================
 # French Data Definition & Download
 # =====================================================================
@@ -904,6 +907,7 @@ def load_fr_corpus():
 
 df_fr = load_fr_corpus()
 
+# ===================================
 # French Dialogue vs. Narration  
 # =====================================================================
 def is_french_dialogue(sentence):
@@ -919,7 +923,7 @@ sentences_df_fr = sentences_df_fr.withColumn("length", F.length(F.col("sentence"
 sentences_df_fr = sentences_df_fr.withColumn("school",F.when(F.col("book").isin(zola_books_fr), "Realist").otherwise("Romantic"))
 
 # =====================================================================
-#  Kandel-Moles Readability
+# Kandel-Moles Readability
 # =====================================================================
 def french_syllable_count(word):
     word = word.lower()
@@ -1047,6 +1051,6 @@ fig_dialogue_fr = px.bar(summary_fr, x="school", y="avg_length", color="category
                          labels={"avg_length": "Avg Characters per Sentence"})
 fig_dialogue_fr.write_html("plots/dialogue_fr.html")
 
-print("Ok_rench version")
+print("Ok_french version")
 
 ```
